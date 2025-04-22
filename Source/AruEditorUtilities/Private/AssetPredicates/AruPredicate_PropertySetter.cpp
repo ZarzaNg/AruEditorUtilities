@@ -100,12 +100,12 @@ void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContai
 		return;
 	}
 
-	if(NewVal == nullptr || NewVal->GetClass() != ClassType)
+	if(NewVal != nullptr && !NewVal->GetClass()->IsChildOf(ClassType))
 	{
 		return;
 	}
 
-	ObjectProperty->SetPropertyValue(InValue, NewVal);
+	ObjectProperty->SetObjectPtrPropertyValue(InValue, NewVal);
 }
 
 void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue)

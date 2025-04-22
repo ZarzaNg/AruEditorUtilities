@@ -23,5 +23,5 @@ public:
 	virtual bool IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) override;
 protected:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
-	TObjectPtr<UStruct> StructType = nullptr;
+	TObjectPtr<UScriptStruct> StructType = nullptr;
 };
