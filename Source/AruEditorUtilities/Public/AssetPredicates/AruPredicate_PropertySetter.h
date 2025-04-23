@@ -73,18 +73,3 @@ public:
 	virtual ~FAruPredicate_SetInstancedStructValue() override {};
 	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
-
-USTRUCT(BlueprintType, DisplayName="Set Member Variable")
-struct FAruPredicate_SetValueByPath : public FAruPredicate
-{
-	GENERATED_BODY()
-protected:
-	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
-	FString PathToProperty{"Path.To.Your.Property"};
-
-	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
-	TInstancedStruct<FAruPredicate> Predicate;
-public:
-	virtual ~FAruPredicate_SetValueByPath() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
-};
