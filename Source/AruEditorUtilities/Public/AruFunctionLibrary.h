@@ -18,7 +18,10 @@ class ARUEDITORUTILITIES_API UAruFunctionLibrary : public UObject
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable, CallInEditor)
-	static void ProcessSelectedAssets(const FAruActionDefinition& ActionDefinition);
+	static void ProcessSelectedAssets(const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth);
+
+	UFUNCTION(BlueprintCallable, CallInEditor)
+	static void ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth = 5);
 	
 	static FAruPropertyContext FindPropertyByPath(
 		const UStruct* Type,
@@ -29,6 +32,6 @@ public:
 		FProperty* PropertyPtr,
 		void* ContainerPtr,
 		void* ValuePtr,
-		FAruActionDefinition& Action,
+		TArray<FAruActionDefinition>& Actions,
 		const uint8 RemainTimes);
 };

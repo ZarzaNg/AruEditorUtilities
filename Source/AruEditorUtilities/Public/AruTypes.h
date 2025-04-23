@@ -38,9 +38,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Aru Editor Utilities", meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruPredicate>> ActionPredicates;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Aru Editor Utilities", meta=(AdvancedClassDisplay))
-	int32 MaxSearchDepth = 5;
-
 	template<typename StructType>
 	struct TStructIterator
 	{
@@ -67,7 +64,6 @@ protected:
 	};
 
 public:
-	FORCEINLINE int32 GetMaxDepth() const {return MaxSearchDepth;}
 	FORCEINLINE TRangedForStructArray<FAruFilter> ForEachCondition()
 	{
 		return TRangedForStructArray(ActionConditions);

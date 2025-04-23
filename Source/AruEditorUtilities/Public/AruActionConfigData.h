@@ -11,5 +11,5 @@ class ARUEDITORUTILITIES_API UAruActionConfigData : public UDataAsset
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay, BlueprintReadWrite)
-	FAruActionDefinition ActionDefinition;
+	TArray<FAruActionDefinition> ActionDefinitions;
 };

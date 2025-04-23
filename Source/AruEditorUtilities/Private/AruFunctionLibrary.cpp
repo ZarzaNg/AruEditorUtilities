@@ -6,13 +6,17 @@
 
 #define LOCTEXT_NAMESPACE "AruEditorUtilities"
 
-void UAruFunctionLibrary::ProcessSelectedAssets(const FAruActionDefinition& ActionDefinition)
+void UAruFunctionLibrary::ProcessSelectedAssets(const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth)
 {
-	TArray<UObject*>&& SelectedObjects = UEditorUtilityLibrary::GetSelectedAssets();
-	
-	FScopedSlowTask Progress(SelectedObjects.Num(), LOCTEXT("Processing...", "Processing..."));
+	const TArray<UObject*>&& SelectedObjects = UEditorUtilityLibrary::GetSelectedAssets();
+	ProcessAssets(SelectedObjects, ActionDefinitions, MaxDepth);
+}
+
+void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth)
+{
+	FScopedSlowTask Progress(Objects.Num(), LOCTEXT("Processing...", "Processing..."));
 	Progress.MakeDialog();
-	for(auto& Object : SelectedObjects)
+	for(auto& Object : Objects)
 	{
 		Progress.EnterProgressFrame(1.f);
 		
@@ -29,7 +33,7 @@ void UAruFunctionLibrary::ProcessSelectedAssets(const FAruActionDefinition& Acti
 				continue;  
 			}
 			
-			ProcessContainerValues(Property, Object, ValuePtr, const_cast<FAruActionDefinition&>(ActionDefinition), ActionDefinition.GetMaxDepth());  
+			ProcessContainerValues(Property, Object, ValuePtr, const_cast<TArray<FAruActionDefinition>&>(ActionDefinitions), MaxDepth);  
 		}
 
 		Object->Modify();
@@ -40,7 +44,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 	FProperty* PropertyPtr,
 	void* ContainerPtr,
 	void* ValuePtr,
-	FAruActionDefinition& Action,
+	TArray<FAruActionDefinition>& Actions,
 	const uint8 RemainTimes)
 {
 	if(RemainTimes <= 0)
@@ -52,7 +56,11 @@ void UAruFunctionLibrary::ProcessContainerValues(
     {       
     	return;  
     }
-	Action.Invoke(PropertyPtr, ContainerPtr, ValuePtr);
+
+	for(auto& Action : Actions)
+	{
+		Action.Invoke(PropertyPtr, ContainerPtr, ValuePtr);
+	}
     
     if(FObjectProperty* ObjectProperty = CastField<FObjectProperty>(PropertyPtr))  
     {       
@@ -80,7 +88,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 			{             
 				continue;  
 			}          
-			ProcessContainerValues(Property, ObjectPtr, ObjectValuePtr, Action, RemainTimes - 1);  
+			ProcessContainerValues(Property, ObjectPtr, ObjectValuePtr, Actions, RemainTimes - 1);  
 		}    
 	}    
 	else if(FStructProperty* StructProperty = CastField<FStructProperty>(PropertyPtr))  
@@ -121,7 +129,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 				{                
 					continue;  
 				}          
-				ProcessContainerValues(Property, InstancedStructContainer, StructValuePtr,Action, RemainTimes - 1);      
+				ProcessContainerValues(Property, InstancedStructContainer, StructValuePtr,Actions, RemainTimes - 1);      
 			}  
 		}       
 		else  
@@ -138,7 +146,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 				{                
 					continue;  
 				}          
-				ProcessContainerValues(Property, ValuePtr, StructValuePtr, Action, RemainTimes - 1);  
+				ProcessContainerValues(Property, ValuePtr, StructValuePtr, Actions, RemainTimes - 1);  
 			}       
 		}    
 	}    
@@ -148,7 +156,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		for(int32 Index = 0; Index < ArrayHelper.Num(); ++Index)  
 		{          
 			void* ItemPtr = ArrayHelper.GetRawPtr(Index);  
-			ProcessContainerValues(ArrayProperty->Inner, ContainerPtr, ItemPtr, Action, RemainTimes - 1);  
+			ProcessContainerValues(ArrayProperty->Inner, ContainerPtr, ItemPtr, Actions, RemainTimes - 1);  
 		}    
 	}    
 	else if(FMapProperty* MapProperty = CastField<FMapProperty>(PropertyPtr))  
@@ -158,8 +166,8 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		{         
 			void* MapKeyPtr = MapHelper.GetKeyPtr(Index);  
 			void* MapValuePtr = MapHelper.GetValuePtr(Index);  
-			ProcessContainerValues(MapProperty->KeyProp, ContainerPtr, MapKeyPtr, Action, RemainTimes - 1);  
-			ProcessContainerValues(MapProperty->ValueProp, ContainerPtr, MapValuePtr, Action, RemainTimes - 1);  
+			ProcessContainerValues(MapProperty->KeyProp, ContainerPtr, MapKeyPtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(MapProperty->ValueProp, ContainerPtr, MapValuePtr, Actions, RemainTimes - 1);  
 		}    
 	}    
 	else if(FSetProperty* SetProperty = CastField<FSetProperty>(PropertyPtr))  
@@ -168,7 +176,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		for(int32 Index = 0; Index < SetHelper.Num(); ++Index)  
 		{          
 			void* ItemPtr = SetHelper.GetElementPtr(Index);  
-			ProcessContainerValues(SetProperty->ElementProp, ContainerPtr, ItemPtr, Action, RemainTimes - 1);  
+			ProcessContainerValues(SetProperty->ElementProp, ContainerPtr, ItemPtr, Actions, RemainTimes - 1);  
 		}    
 	}
 }
