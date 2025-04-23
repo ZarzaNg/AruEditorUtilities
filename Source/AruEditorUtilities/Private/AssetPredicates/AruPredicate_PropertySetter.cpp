@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_PropertySetter.h"
 #include "AruFunctionLibrary.h"
 
-void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InContainer, void* InValue)
+void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -14,7 +14,7 @@ void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InContaine
 	}
 }
 
-void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InContainer, void* InValue)
+void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -31,7 +31,7 @@ void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InContain
 	}
 }
 
-void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InContainer, void* InValue)
+void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -48,7 +48,7 @@ void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InConta
 	}
 }
 
-void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue)
+void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -81,7 +81,7 @@ void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContai
 	SourceStructType->CopyScriptStruct(InValue, NewVal.GetMemory());
 }
 
-void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContainer, void* InValue)
+void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -108,7 +108,7 @@ void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContai
 	ObjectProperty->SetObjectPtrPropertyValue(InValue, NewVal);
 }
 
-void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue)
+void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -136,7 +136,7 @@ void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void*
 	*InstancedStructPtr = NewVal;
 }
 
-void FAruPredicate_SetValueByPath::Execute(FProperty* InProperty, void* InContainer, void* InValue)
+void FAruPredicate_SetValueByPath::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(PathToProperty.IsEmpty() || InValue == nullptr || !Predicate.IsValid())
 	{
@@ -145,7 +145,7 @@ void FAruPredicate_SetValueByPath::Execute(FProperty* InProperty, void* InContai
 
 	auto Foo = [&](const FAruPropertyContext& InPropertyContext)
 	{
-		if(FAruPredicate* PredicatePtr = Predicate.GetMutablePtr<FAruPredicate>())
+		if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 		{
 			PredicatePtr->Execute(InPropertyContext.PropertyPtr, nullptr, InPropertyContext.ValuePtr);
 		}

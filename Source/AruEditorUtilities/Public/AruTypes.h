@@ -9,7 +9,7 @@ struct FAruFilter
 	GENERATED_BODY()
 public:
 	virtual ~FAruFilter(){}
-	virtual bool IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) {return bInverseCondition;}
+	virtual bool IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const {return bInverseCondition;}
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=Config, meta=(AdvancedClassDisplay))
 	bool bInverseCondition = false;
@@ -21,7 +21,7 @@ struct FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate(){};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue){};
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const {};
 };
 
 USTRUCT(BlueprintType)

@@ -11,7 +11,7 @@ protected:
 	bool NewVal = false;
 public:
 	virtual ~FAruPredicate_SetBoolValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) override;
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Float Value")
@@ -23,7 +23,7 @@ protected:
 	float NewVal = 0.f;
 public:
 	virtual ~FAruPredicate_SetFloatValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) override;
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Integer Value")
@@ -35,7 +35,7 @@ protected:
 	int64 NewVal = 0;
 public:
 	virtual ~FAruPredicate_SetIntegerValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) override;
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Struct Value")
@@ -47,7 +47,7 @@ protected:
 	FInstancedStruct NewVal;
 public:
 	virtual ~FAruPredicate_SetStructValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) override;
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Object Value")
@@ -59,7 +59,7 @@ protected:
 	TObjectPtr<UObject> NewVal = nullptr;
 public:
 	virtual ~FAruPredicate_SetObjectValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) override;
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Instanced Struct Value")
@@ -71,7 +71,7 @@ protected:
 	FInstancedStruct NewVal;
 public:
 	virtual ~FAruPredicate_SetInstancedStructValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) override;
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Member Variable")
@@ -86,5 +86,5 @@ protected:
 	TInstancedStruct<FAruPredicate> Predicate;
 public:
 	virtual ~FAruPredicate_SetValueByPath() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) override;
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };

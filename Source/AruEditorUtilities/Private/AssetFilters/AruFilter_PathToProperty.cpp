@@ -2,7 +2,7 @@
 
 #include "AruFunctionLibrary.h"
 
-bool FAruFilter_PathToProperty::IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue)
+bool FAruFilter_PathToProperty::IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(PathToProperty.IsEmpty() || InValue == nullptr || !Filter.IsValid())
 	{
@@ -11,7 +11,7 @@ bool FAruFilter_PathToProperty::IsConditionMet(FProperty* InProperty, void* InCo
 
 	auto Foo = [&](const FAruPropertyContext& InPropertyContext)
 	{
-		if(FAruFilter* FilterPtr = Filter.GetMutablePtr<FAruFilter>())
+		if(const FAruFilter* FilterPtr = Filter.GetPtr<FAruFilter>())
 		{
 			return FilterPtr->IsConditionMet(InPropertyContext.PropertyPtr, nullptr, InPropertyContext.ValuePtr);
 		}
