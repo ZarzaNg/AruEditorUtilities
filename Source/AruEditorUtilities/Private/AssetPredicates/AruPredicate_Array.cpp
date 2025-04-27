@@ -8,19 +8,13 @@ void FAruPredicate_AddArrayValue::Execute(FProperty* InProperty, void* InContain
 		return;
 	}
 
-	if(!Predicate.IsValid())
-	{
-		return;
-	}
-
-	const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>();
-	if(PredicatePtr == nullptr)
+	if(Predicates.Num() == 0)
 	{
 		return;
 	}
 	
 	FScriptArrayHelper ArrayHelper(ArrayProperty, InValue);
-	int32 NewElementIndex = ArrayHelper.AddUninitializedValue();
+	int32 NewElementIndex = ArrayHelper.AddValue();
 	if(!ArrayHelper.IsValidIndex(NewElementIndex))
 	{
 		return;
@@ -28,7 +22,16 @@ void FAruPredicate_AddArrayValue::Execute(FProperty* InProperty, void* InContain
 	
 	FProperty* ElementProperty = ArrayProperty->Inner;
 	void* NewElementPtr = ArrayHelper.GetRawPtr(NewElementIndex);
-	PredicatePtr->Execute(ElementProperty, InContainer, NewElementPtr);
+	for(auto& Predicate : Predicates)
+	{
+		const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>();
+		if(PredicatePtr == nullptr)
+		{
+			continue;
+		}
+		
+		PredicatePtr->Execute(ElementProperty, InContainer, NewElementPtr);
+	}
 }
 
 void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
@@ -91,7 +94,7 @@ void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InCont
 		return;
 	}
 
-	auto ShouldExecute = [&](void* ValuePtr)
+	auto ShouldModify = [&](void* ValuePtr)
 	{
 		for(const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
 		{
@@ -113,7 +116,7 @@ void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InCont
 	for(int32 Index = 0; Index < ArrayHelper.Num(); ++Index)  
 	{
 		void* ElementPtr = ArrayHelper.GetRawPtr(Index);
-		if(ShouldExecute(ElementPtr))
+		if(ShouldModify(ElementPtr))
 		{
 			for(const TInstancedStruct<FAruPredicate>& PredicateStruct : Predicates)
 			{

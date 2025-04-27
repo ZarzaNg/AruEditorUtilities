@@ -11,7 +11,7 @@ public:
 	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
-	TInstancedStruct<FAruPredicate> Predicate;
+	TArray<TInstancedStruct<FAruPredicate>> Predicates;
 };
 
 
