@@ -9,26 +9,11 @@ bool FAruFilter_PathToProperty::IsConditionMet(FProperty* InProperty, void* InCo
 		return bInverseCondition;
 	}
 
-	auto Foo = [&](const FAruPropertyContext& InPropertyContext)
+	FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(InProperty, InValue, PathToProperty);
+	if(const FAruFilter* FilterPtr = Filter.GetPtr<FAruFilter>())
 	{
-		if(const FAruFilter* FilterPtr = Filter.GetPtr<FAruFilter>())
-		{
-			return FilterPtr->IsConditionMet(InPropertyContext.PropertyPtr, nullptr, InPropertyContext.ValuePtr);
-		}
-
-		return false;
-	};
-
-	if(const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty))
-	{
-		FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(ObjectProperty->PropertyClass, InValue, PathToProperty);
-		return Foo(PropertyContext);
+		return FilterPtr->IsConditionMet(PropertyContext.PropertyPtr, nullptr, PropertyContext.ValuePtr);
 	}
 	
-	if(const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty))
-	{
-		FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(StructProperty->Struct, InValue, PathToProperty);
-		return Foo(PropertyContext);
-	}
 	return bInverseCondition;
 }

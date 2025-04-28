@@ -182,11 +182,11 @@ void UAruFunctionLibrary::ProcessContainerValues(
 }
 
 FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
-	const UStruct* Type,
-	void* ContainerPtr,
+	const FProperty* InProperty,
+	const void* InPropertyPtr,
 	const FString& Path)
 {
-	if(Type == nullptr || ContainerPtr == nullptr || Path.IsEmpty())
+	if(InProperty == nullptr || InPropertyPtr == nullptr || Path.IsEmpty())
 	{
 		return FAruPropertyContext{};
 	}
@@ -194,41 +194,64 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 	TArray<FString> PropertyChain;
 	Path.ParseIntoArray(PropertyChain, TEXT("."), true);
 
-	const UStruct* CurrentStruct = Type;
-	void* CurrentValue = ContainerPtr;
-	FAruPropertyContext Context{};
+	const FProperty* CurrentProperty = InProperty;
+	const void*	CurrentPropertyPtr = InPropertyPtr;
 	for (const FString& Element : PropertyChain)
 	{
-		FProperty* CurrentProperty = CurrentStruct->FindPropertyByName(*Element);
-		if (CurrentProperty == nullptr)
+		if(const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(CurrentProperty))
 		{
-			break;
-		}
-
-		if (const FObjectProperty* ObjectProp = CastField<FObjectProperty>(CurrentProperty))
-		{
-			CurrentValue = ObjectProp->GetObjectPropertyValue_InContainer(CurrentValue);
-			CurrentStruct = ObjectProp->PropertyClass;
-		}
-		else if (const FStructProperty* StructProp = CastField<FStructProperty>(CurrentProperty))
-		{
-			CurrentValue = StructProp->ContainerPtrToValuePtr<void>(CurrentValue);
-			CurrentStruct = StructProp->Struct;
-		}
-		else
-		{
-			if (&Element != &PropertyChain.Last())
+			UObject* ObjectPtr = ObjectProperty->GetObjectPropertyValue(CurrentPropertyPtr);
+			if(ObjectPtr == nullptr)
 			{
-				CurrentProperty = nullptr;
-				break;
+				return FAruPropertyContext{};
 			}
-			
-			Context.PropertyPtr = CurrentProperty;
-			Context.ValuePtr = CurrentProperty->ContainerPtrToValuePtr<void>(CurrentValue);
+
+			const UClass* ClassType = ObjectPtr->GetClass();
+			if(ClassType == nullptr)
+			{
+				return FAruPropertyContext{};
+			}
+
+			CurrentProperty = ClassType->FindPropertyByName(*Element);
+			if(CurrentProperty == nullptr)
+			{
+				return FAruPropertyContext{};
+			}
+
+			CurrentPropertyPtr = CurrentProperty->ContainerPtrToValuePtr<void>(ObjectPtr);
+			if(CurrentPropertyPtr == nullptr)
+			{
+				return FAruPropertyContext{};
+			}
+		}
+		else if(const FStructProperty* StructProperty = CastField<FStructProperty>(CurrentProperty))
+		{
+			const UScriptStruct* StructType = StructProperty->Struct;  
+			if(StructType == nullptr)  
+			{          
+				return FAruPropertyContext{};  
+			}
+
+			CurrentProperty = StructType->FindPropertyByName(*Element);
+			if(CurrentProperty == nullptr)
+			{
+				return FAruPropertyContext{};
+			}
+
+			CurrentPropertyPtr = CurrentProperty->ContainerPtrToValuePtr<void>(CurrentPropertyPtr);
+			if(CurrentPropertyPtr == nullptr)
+			{
+				return FAruPropertyContext{};
+			}
+		}
+		
+		if(&Element == &PropertyChain.Last())
+		{
+			return FAruPropertyContext{const_cast<void*>(CurrentPropertyPtr), const_cast<FProperty*>(CurrentProperty)};
 		}
 	}
 
-	return Context;
+	return FAruPropertyContext{};
 }
 
 #undef LOCTEXT_NAMESPACE 

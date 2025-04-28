@@ -22,10 +22,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, CallInEditor)
 	static void ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth = 5);
-	
+
 	static FAruPropertyContext FindPropertyByPath(
-		const UStruct* Type,
-		void* ContainerPtr,
+		const FProperty* InProperty,
+		const void* InPropertyPtr,
 		const FString& Path);
 	
 	static void ProcessContainerValues(
