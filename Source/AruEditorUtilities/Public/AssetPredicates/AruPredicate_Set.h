@@ -1,0 +1,42 @@
+﻿#pragma once
+#include "AruTypes.h"
+#include "AruPredicate_Set.generated.h"
+
+USTRUCT(BlueprintType, DisplayName="Add Element to Set")
+struct FAruPredicate_AddSetElement : public  FAruPredicate
+{
+	GENERATED_BODY()
+public:
+	virtual ~FAruPredicate_AddSetElement() override {};
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+protected:
+	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
+	TArray<TInstancedStruct<FAruPredicate>> Predicates;
+};
+
+USTRUCT(BlueprintType, DisplayName="Remove Element(s) from Array")
+struct FAruPredicate_RemoveSetValue : public FAruPredicate
+{
+	GENERATED_BODY()
+public:
+	virtual ~FAruPredicate_RemoveSetValue() override {};
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+protected:
+	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
+	TArray<TInstancedStruct<FAruFilter>> Filters;
+};
+
+USTRUCT(BlueprintType, DisplayName="Modify Element(s) from Array")
+struct FAruPredicate_ModifySetValue : public FAruPredicate
+{
+	GENERATED_BODY()
+public:
+	virtual ~FAruPredicate_ModifySetValue() override{};
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+protected:
+	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
+	TArray<TInstancedStruct<FAruFilter>> Filters;
+	
+	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
+	TArray<TInstancedStruct<FAruPredicate>> Predicates;
+};
