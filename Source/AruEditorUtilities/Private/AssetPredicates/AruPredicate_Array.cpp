@@ -13,7 +13,7 @@ void FAruPredicate_AddArrayValue::Execute(FProperty* InProperty, void* InContain
 		return;
 	}
 	
-	FScriptArrayHelper ArrayHelper(ArrayProperty, InValue);
+	FScriptArrayHelper ArrayHelper{ArrayProperty, InValue};
 	int32 NewElementIndex = ArrayHelper.AddValue();
 	if(!ArrayHelper.IsValidIndex(NewElementIndex))
 	{
@@ -66,7 +66,7 @@ void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InCont
 	};
 
 	TArray<int32> PendingRemove;
-	FScriptArrayHelper ArrayHelper(ArrayProperty, InValue);
+	FScriptArrayHelper ArrayHelper{ArrayProperty, InValue};
 	for(int32 Index = 0; Index < ArrayHelper.Num(); ++Index)  
 	{
 		if(ShouldRemove(ArrayHelper.GetRawPtr(Index)))
@@ -112,7 +112,7 @@ void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InCont
 		return true;
 	};
 
-	FScriptArrayHelper ArrayHelper(ArrayProperty, InValue);
+	FScriptArrayHelper ArrayHelper{ArrayProperty, InValue};
 	for(int32 Index = 0; Index < ArrayHelper.Num(); ++Index)  
 	{
 		void* ElementPtr = ArrayHelper.GetRawPtr(Index);
