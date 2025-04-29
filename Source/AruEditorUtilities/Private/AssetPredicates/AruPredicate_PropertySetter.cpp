@@ -48,6 +48,19 @@ void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InConta
 	}
 }
 
+void FAruPredicate_SetNameValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+{
+	if(InProperty == nullptr || InValue == nullptr)
+	{
+		return;
+	}
+
+	if(const FNameProperty* NameProperty = CastField<FNameProperty>(InProperty))
+	{
+		NameProperty->SetPropertyValue(InValue, NewVal);
+	}
+}
+
 void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)

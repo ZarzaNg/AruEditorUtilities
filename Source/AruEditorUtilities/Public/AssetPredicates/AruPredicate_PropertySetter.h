@@ -38,6 +38,18 @@ public:
 	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
 
+USTRUCT(BlueprintType, DisplayName="Set Name Value")
+struct FAruPredicate_SetNameValue : public FAruPredicate
+{
+	GENERATED_BODY()
+protected:
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	FName NewVal = FName{};
+public:
+	virtual ~FAruPredicate_SetNameValue() override {};
+	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+};
+
 USTRUCT(BlueprintType, DisplayName="Set Struct Value")
 struct FAruPredicate_SetStructValue : public FAruPredicate
 {
