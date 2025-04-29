@@ -90,7 +90,65 @@ void UAruFunctionLibrary::ProcessContainerValues(
 			}          
 			ProcessContainerValues(Property, ObjectPtr, ObjectValuePtr, Actions, RemainTimes - 1);  
 		}    
-	}    
+	}
+	else if(FWeakObjectProperty* WeakObjectProperty = CastField<FWeakObjectProperty>(PropertyPtr))
+	{
+		UObject* ObjectPtr = WeakObjectProperty->GetObjectPropertyValue(ValuePtr);
+		if(ObjectPtr == nullptr)  
+		{          
+			return;  
+		}
+    	
+		const UClass* ClassType = ObjectPtr->GetClass();
+		if(ClassType == nullptr)
+		{
+			return;
+		}
+
+		for(TFieldIterator<FProperty> It{ObjectPtr->GetClass()}; It; ++It)  
+		{          
+			FProperty* Property = *It;  
+			if(Property == nullptr)  
+			{             
+				continue;  
+			}          
+			void* ObjectValuePtr = Property->ContainerPtrToValuePtr<void>(ObjectPtr);  
+			if(ValuePtr == nullptr)  
+			{             
+				continue;  
+			}          
+			ProcessContainerValues(Property, ObjectPtr, ObjectValuePtr, Actions, RemainTimes - 1);  
+		}   
+	}
+	else if(FSoftObjectProperty* SoftObjectProperty = CastField<FSoftObjectProperty>(PropertyPtr))
+	{
+		UObject* ObjectPtr = SoftObjectProperty->GetObjectPropertyValue(ValuePtr);
+		if(ObjectPtr == nullptr)  
+		{          
+			return;  
+		}
+    	
+		const UClass* ClassType = ObjectPtr->GetClass();
+		if(ClassType == nullptr)
+		{
+			return;
+		}
+
+		for(TFieldIterator<FProperty> It{ObjectPtr->GetClass()}; It; ++It)  
+		{          
+			FProperty* Property = *It;  
+			if(Property == nullptr)  
+			{             
+				continue;  
+			}          
+			void* ObjectValuePtr = Property->ContainerPtrToValuePtr<void>(ObjectPtr);  
+			if(ValuePtr == nullptr)  
+			{             
+				continue;  
+			}          
+			ProcessContainerValues(Property, ObjectPtr, ObjectValuePtr, Actions, RemainTimes - 1);  
+		} 
+	}
 	else if(FStructProperty* StructProperty = CastField<FStructProperty>(PropertyPtr))  
 	{       
 		const UScriptStruct* StructType = StructProperty->Struct;  
