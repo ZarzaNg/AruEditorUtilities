@@ -290,16 +290,51 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 				return FAruPropertyContext{};  
 			}
 
-			CurrentProperty = StructType->FindPropertyByName(*Element);
-			if(CurrentProperty == nullptr)
+			if(StructType == FInstancedStruct::StaticStruct())
 			{
-				return FAruPropertyContext{};
-			}
+				const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(CurrentPropertyPtr);  
+				if(InstancedStructPtr == nullptr || !InstancedStructPtr->IsValid())  
+				{             
+					return FAruPropertyContext{};  
+				}
+				
+				const UScriptStruct* InstancedStructType = InstancedStructPtr->GetScriptStruct();  
+				if(InstancedStructType == nullptr)  
+				{             
+					return FAruPropertyContext{};  
+				}
 
-			CurrentPropertyPtr = CurrentProperty->ContainerPtrToValuePtr<void>(CurrentPropertyPtr);
-			if(CurrentPropertyPtr == nullptr)
+				CurrentProperty = InstancedStructType->FindPropertyByName(*Element);
+				if(CurrentProperty == nullptr)
+				{
+					return FAruPropertyContext{};
+				}
+				
+				const void* InstancedStructContainer = InstancedStructPtr->GetMemory();  
+				if(InstancedStructContainer == nullptr)  
+				{             
+					return FAruPropertyContext{};  
+				}
+
+				CurrentPropertyPtr = CurrentProperty->ContainerPtrToValuePtr<void>(InstancedStructContainer);
+				if(CurrentPropertyPtr == nullptr)
+				{
+					return FAruPropertyContext{};
+				}
+			}
+			else
 			{
-				return FAruPropertyContext{};
+				CurrentProperty = StructType->FindPropertyByName(*Element);
+				if(CurrentProperty == nullptr)
+				{
+					return FAruPropertyContext{};
+				}
+
+				CurrentPropertyPtr = CurrentProperty->ContainerPtrToValuePtr<void>(CurrentPropertyPtr);
+				if(CurrentPropertyPtr == nullptr)
+				{
+					return FAruPropertyContext{};
+				}
 			}
 		}
 		
