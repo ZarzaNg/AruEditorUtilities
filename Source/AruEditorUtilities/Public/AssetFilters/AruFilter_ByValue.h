@@ -80,8 +80,5 @@ public:
 	virtual bool IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
-	FGameplayTagContainer ConditionTags;
-
-	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
-	EAruContainerCompareOp CompareOp = EAruContainerCompareOp::HasAny;
+	FGameplayTagQuery TagQuery;
 };

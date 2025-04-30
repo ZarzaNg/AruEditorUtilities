@@ -2,6 +2,7 @@
 
 #include "AruTypes.h"
 #include "EditorUtilityLibrary.h"
+#include "GameplayTagContainer.h"
 #include "StructUtils/InstancedStruct.h"
 
 #define LOCTEXT_NAMESPACE "AruEditorUtilities"
@@ -153,6 +154,13 @@ void UAruFunctionLibrary::ProcessContainerValues(
 	{       
 		const UScriptStruct* StructType = StructProperty->Struct;  
 		if(StructType == nullptr)  
+		{          
+			return;  
+		}
+		
+		if(StructType == FGameplayTag::StaticStruct() 
+			|| StructType == FGameplayTagQuery::StaticStruct()
+			|| StructType == FGameplayTagContainer::StaticStruct())
 		{          
 			return;  
 		}

@@ -93,7 +93,7 @@ bool FAruFilter_ByObject::IsConditionMet(FProperty* InProperty, void* InContaine
 
 bool FAruFilter_ByGameplayTagContainer::IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const
 {
-	if(InProperty == nullptr || InValue == nullptr || ConditionTags.IsEmpty())
+	if(InProperty == nullptr || InValue == nullptr || TagQuery.IsEmpty())
 	{
 		return bInverseCondition;
 	}
@@ -118,7 +118,7 @@ bool FAruFilter_ByGameplayTagContainer::IsConditionMet(FProperty* InProperty, vo
 			return bInverseCondition;
 		}
 
-		return ConditionTags.HasTag(*GameplayTagPtr) ^ bInverseCondition;
+		return TagQuery.Matches(FGameplayTagContainer{*GameplayTagPtr}) ^ bInverseCondition;
 	}
 
 	if(StructType == FGameplayTagContainer::StaticStruct())
@@ -129,15 +129,7 @@ bool FAruFilter_ByGameplayTagContainer::IsConditionMet(FProperty* InProperty, vo
 			return bInverseCondition;
 		}
 
-		if(CompareOp == EAruContainerCompareOp::HasAny && ConditionTags.HasAny(*GameplayTagsPtr))
-		{
-			return true ^ bInverseCondition;
-		}
-
-		if(CompareOp == EAruContainerCompareOp::HasAll && ConditionTags.HasAll(*GameplayTagsPtr))
-		{
-			return true ^ bInverseCondition;
-		}
+		return TagQuery.Matches(*GameplayTagsPtr) ^ bInverseCondition;
 	}
 
 	return bInverseCondition;
