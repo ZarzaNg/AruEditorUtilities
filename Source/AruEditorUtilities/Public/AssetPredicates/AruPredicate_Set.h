@@ -14,7 +14,7 @@ protected:
 	TArray<TInstancedStruct<FAruPredicate>> Predicates;
 };
 
-USTRUCT(BlueprintType, DisplayName="Remove Element(s) from Array")
+USTRUCT(BlueprintType, DisplayName="Remove Element(s) from Set")
 struct FAruPredicate_RemoveSetValue : public FAruPredicate
 {
 	GENERATED_BODY()
@@ -26,7 +26,7 @@ protected:
 	TArray<TInstancedStruct<FAruFilter>> Filters;
 };
 
-USTRUCT(BlueprintType, DisplayName="Modify Element(s) from Array")
+USTRUCT(BlueprintType, DisplayName="Modify Element(s) from Set")
 struct FAruPredicate_ModifySetValue : public FAruPredicate
 {
 	GENERATED_BODY()
