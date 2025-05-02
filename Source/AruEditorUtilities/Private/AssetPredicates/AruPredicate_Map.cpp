@@ -8,45 +8,76 @@ void FAruPredicate_AddMapPair::Execute(FProperty* InProperty, void* InContainer,
 		return;
 	}
 
-	FScriptMapHelper MapHelper{MapProperty, InValue};
-	int32 NewElementIndex = MapHelper.AddDefaultValue_Invalid_NeedsRehash();
-	if(!MapHelper.IsValidIndex(NewElementIndex))
+	if(PredicatesForKey.Num() == 0)
+	{
+		// TODO: Add message log here.
+		return;
+	}
+
+	FProperty* KeyProperty = MapProperty->KeyProp;
+	FProperty* ValueProperty = MapProperty->ValueProp;
+	if(KeyProperty == nullptr || ValueProperty == nullptr)
+	{
+		return;
+	}
+
+	void* PendingKeyPtr = FMemory::Malloc(KeyProperty->GetSize());
+	if(PendingKeyPtr == nullptr)
 	{
 		return;
 	}
 
 	ON_SCOPE_EXIT
 	{
-		MapHelper.Rehash();
+		KeyProperty->DestroyValue(PendingKeyPtr);
+		FMemory::Free(PendingKeyPtr);
 	};
 
-	FProperty* KeyProperty = MapProperty->KeyProp;
-	void* KeyPtr = MapHelper.GetKeyPtr(NewElementIndex);
-	if(KeyProperty == nullptr || KeyPtr == nullptr)
-	{
-		return;
-	}
-	
-	FProperty* ValueProperty = MapProperty->ValueProp;
-	void* ValuePtr = MapHelper.GetValuePtr(NewElementIndex);
-	if(ValueProperty == nullptr || ValuePtr == nullptr)
-	{
-		return;
-	}
-
+	KeyProperty->InitializeValue(PendingKeyPtr);
 	for(auto& Predicate : PredicatesForKey)
 	{
 		if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 		{
-			PredicatePtr->Execute(KeyProperty, InContainer, KeyPtr);
+			PredicatePtr->Execute(KeyProperty, InContainer, PendingKeyPtr);
 		}
 	}
 
+	FScriptMapHelper MapHelper{MapProperty, InValue};
+	if(MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
+	{
+		// TODO: Add message log here.
+		return;
+	}
+	
+	int32 NewElementIndex = MapHelper.AddDefaultValue_Invalid_NeedsRehash();
+	if(!MapHelper.IsValidIndex(NewElementIndex))
+	{
+		return;
+	}
+	
+	ON_SCOPE_EXIT
+	{
+		MapHelper.Rehash();
+	};
+	
+	void* NewKeyPtr = MapHelper.GetKeyPtr(NewElementIndex);
+	if(NewKeyPtr == nullptr)
+	{
+		return;
+	}
+	KeyProperty->CopyCompleteValue(NewKeyPtr, PendingKeyPtr);
+	
+	void* NewValuePtr = MapHelper.GetValuePtr(NewElementIndex);
+	if(NewValuePtr == nullptr)
+	{
+		return;
+	}
+	
 	for(auto& Predicate : PredicatesForValue)
 	{
 		if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 		{
-			PredicatePtr->Execute(ValueProperty, InContainer, ValuePtr);
+			PredicatePtr->Execute(ValueProperty, InContainer, NewValuePtr);
 		}
 	}
 }
@@ -130,7 +161,14 @@ void FAruPredicate_ModifyMapPair::Execute(FProperty* InProperty, void* InContain
 	}
 	
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
-	if(MapProperty == nullptr || MapProperty->KeyProp == nullptr || MapProperty->ValueProp == nullptr)
+	if(MapProperty == nullptr)
+	{
+		return;
+	}
+	
+	FProperty* KeyProperty = MapProperty->KeyProp;
+	FProperty* ValueProperty = MapProperty->ValueProp;
+	if(KeyProperty == nullptr || ValueProperty == nullptr)
 	{
 		return;
 	}
@@ -189,14 +227,36 @@ void FAruPredicate_ModifyMapPair::Execute(FProperty* InProperty, void* InContain
 
 	for(int32& Index : PendingToModify)
 	{
-		void* MapKeyPtr = MapHelper.GetKeyPtr(Index);  
+		void* MapKeyPtr = MapHelper.GetKeyPtr(Index);
+		void* PendingKeyPtr = FMemory::Malloc(KeyProperty->GetSize());
+		if(PendingKeyPtr == nullptr)
+		{
+			continue;
+		}
+
+		ON_SCOPE_EXIT
+		{
+			KeyProperty->DestroyValue(PendingKeyPtr);
+			FMemory::Free(PendingKeyPtr);
+		};
+
+		// TODO: Ignore initialization
+		KeyProperty->InitializeValue(PendingKeyPtr);
+		KeyProperty->CopyCompleteValue(PendingKeyPtr, MapKeyPtr);
 		for(auto& Predicate : PredicatesForKey)
 		{
 			if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 			{
-				PredicatePtr->Execute(MapProperty->KeyProp, InContainer, MapKeyPtr);
+				PredicatePtr->Execute(MapProperty->KeyProp, InContainer, PendingKeyPtr);
 			}
 		}
+
+		if(MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
+		{
+			// TODO: Log
+			continue;
+		}
+		KeyProperty->CopyCompleteValue(MapKeyPtr, PendingKeyPtr);
 
 		void* MapValuePtr = MapHelper.GetValuePtr(Index);
 		for(auto& Predicate : PredicatesForValue)
@@ -206,5 +266,7 @@ void FAruPredicate_ModifyMapPair::Execute(FProperty* InProperty, void* InContain
 				PredicatePtr->Execute(MapProperty->ValueProp, InContainer, MapValuePtr);
 			}
 		}
+		
+		MapHelper.Rehash();
 	}
 }
