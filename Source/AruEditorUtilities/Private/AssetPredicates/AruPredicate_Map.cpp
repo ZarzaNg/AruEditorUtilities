@@ -11,7 +11,6 @@ void FAruPredicate_AddMapPair::Execute(FProperty* InProperty, void* InContainer,
 
 	if(PredicatesForKey.Num() == 0)
 	{
-		// TODO: Add message log here.
 		return;
 	}
 
@@ -241,8 +240,6 @@ void FAruPredicate_ModifyMapPair::Execute(FProperty* InProperty, void* InContain
 			FMemory::Free(PendingKeyPtr);
 		};
 
-		// TODO: Ignore initialization
-		KeyProperty->InitializeValue(PendingKeyPtr);
 		KeyProperty->CopyCompleteValue(PendingKeyPtr, MapKeyPtr);
 		for(auto& Predicate : PredicatesForKey)
 		{

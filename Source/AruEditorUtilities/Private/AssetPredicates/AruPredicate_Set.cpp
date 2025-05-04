@@ -172,7 +172,6 @@ void FAruPredicate_ModifySetValue::Execute(FProperty* InProperty, void* InContai
 			FMemory::Free(PendingElementPtr);
 		};
 		
-		ElementProperty->InitializeValue(PendingElementPtr);
 		ElementProperty->CopyCompleteValue(PendingElementPtr, ElementPtr);
 
 		for(const TInstancedStruct<FAruPredicate>& PredicateStruct : Predicates)
