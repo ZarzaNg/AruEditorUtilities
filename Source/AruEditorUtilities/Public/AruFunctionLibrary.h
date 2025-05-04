@@ -32,6 +32,6 @@ public:
 		FProperty* PropertyPtr,
 		void* ContainerPtr,
 		void* ValuePtr,
-		TArray<FAruActionDefinition>& Actions,
+		const TArray<FAruActionDefinition>& Actions,
 		const uint8 RemainTimes);
 };

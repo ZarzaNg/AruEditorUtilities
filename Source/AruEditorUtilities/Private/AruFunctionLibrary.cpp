@@ -26,15 +26,15 @@ void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const T
 			FProperty* Property = *It;  
 			if(Property == nullptr)  
 			{       
-				continue;  
+				continue;
 			}    
 			void* ValuePtr = Property->ContainerPtrToValuePtr<void>(Object);  
 			if(ValuePtr == nullptr)  
 			{       
-				continue;  
+				continue;
 			}
 			
-			ProcessContainerValues(Property, Object, ValuePtr, const_cast<TArray<FAruActionDefinition>&>(ActionDefinitions), MaxDepth);  
+			ProcessContainerValues(Property, Object, ValuePtr, ActionDefinitions, MaxDepth);  
 		}
 
 		Object->Modify();
@@ -45,7 +45,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 	FProperty* PropertyPtr,
 	void* ContainerPtr,
 	void* ValuePtr,
-	TArray<FAruActionDefinition>& Actions,
+	const TArray<FAruActionDefinition>& Actions,
 	const uint8 RemainTimes)
 {
 	if(RemainTimes <= 0)
@@ -58,7 +58,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
     	return;  
     }
 
-	for(auto& Action : Actions)
+	for(const auto& Action : Actions)
 	{
 		Action.Invoke(PropertyPtr, ContainerPtr, ValuePtr);
 	}
@@ -70,12 +70,6 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		{          
 			return;  
 		}
-    	
-    	const UClass* ClassType = ObjectPtr->GetClass();
-    	if(ClassType == nullptr)
-    	{
-    		return;
-    	}
 
 		for(TFieldIterator<FProperty> It{ObjectPtr->GetClass()}; It; ++It)  
 		{          
@@ -99,12 +93,6 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		{          
 			return;  
 		}
-    	
-		const UClass* ClassType = ObjectPtr->GetClass();
-		if(ClassType == nullptr)
-		{
-			return;
-		}
 
 		for(TFieldIterator<FProperty> It{ObjectPtr->GetClass()}; It; ++It)  
 		{          
@@ -127,12 +115,6 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		if(ObjectPtr == nullptr)  
 		{          
 			return;  
-		}
-    	
-		const UClass* ClassType = ObjectPtr->GetClass();
-		if(ClassType == nullptr)
-		{
-			return;
 		}
 
 		for(TFieldIterator<FProperty> It{ObjectPtr->GetClass()}; It; ++It)  

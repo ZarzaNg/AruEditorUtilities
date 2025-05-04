@@ -29,7 +29,7 @@ struct FAruActionDefinition
 {
 	GENERATED_BODY()
 public:
-	void Invoke(FProperty* InProperty, void* InContainer, void* InValue);
+	void Invoke(FProperty* InProperty, void* InContainer, void* InValue) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Aru Editor Utilities", meta=(ExcludeBaseStruct))
@@ -42,34 +42,34 @@ protected:
 	struct TStructIterator
 	{
 		int32 Index;
-		TArray<TInstancedStruct<StructType>>& StructArrayRef;
+		const TArray<TInstancedStruct<StructType>>& StructArrayRef;
 
-		FORCEINLINE TStructIterator(int32 InIndex, TArray<TInstancedStruct<StructType>>& InStructArray)
+		FORCEINLINE TStructIterator(int32 InIndex, const TArray<TInstancedStruct<StructType>>& InStructArray)
 					: Index(InIndex), StructArrayRef(InStructArray) {};
 
 		FORCEINLINE bool operator!=(const TStructIterator& Other) const {return Index != Other.Index;}
-		FORCEINLINE StructType& operator*() const {return StructArrayRef[Index].GetMutable<StructType>();}
+		FORCEINLINE const StructType& operator*() const {return StructArrayRef[Index].Get<const StructType>();}
 		FORCEINLINE TStructIterator& operator++() { ++Index; return *this; }
 	};
 
 	template<typename StructType>
 	struct TRangedForStructArray
 	{
-		TArray<TInstancedStruct<StructType>>& StructArrayRef;
+		const TArray<TInstancedStruct<StructType>>& StructArrayRef;
 
-		explicit TRangedForStructArray(TArray<TInstancedStruct<StructType>>& InStructArray) : StructArrayRef(InStructArray) {}
+		explicit TRangedForStructArray(const TArray<TInstancedStruct<StructType>>& InStructArray) : StructArrayRef(InStructArray) {}
 
 		FORCEINLINE TStructIterator<StructType> begin() { return TStructIterator<StructType>(0, StructArrayRef); }
 		FORCEINLINE TStructIterator<StructType> end()	{ return TStructIterator<StructType>(StructArrayRef.Num(), StructArrayRef); }
 	};
 
 public:
-	FORCEINLINE TRangedForStructArray<FAruFilter> ForEachCondition()
+	FORCEINLINE TRangedForStructArray<FAruFilter> ForEachCondition() const
 	{
-		return TRangedForStructArray(ActionConditions);
+		return TRangedForStructArray{ActionConditions};
 	}
-	FORCEINLINE TRangedForStructArray<FAruPredicate> ForEachPredicates()
+	FORCEINLINE TRangedForStructArray<FAruPredicate> ForEachPredicates() const
 	{
-		return TRangedForStructArray(ActionPredicates);
+		return TRangedForStructArray{ActionPredicates};
 	}
 };

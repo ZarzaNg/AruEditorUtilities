@@ -2,7 +2,7 @@
 
 #include "AruFunctionLibrary.h"
 
-void FAruActionDefinition::Invoke(FProperty* InProperty, void* InContainer, void* InValue)
+void FAruActionDefinition::Invoke(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	if(InProperty == nullptr || InContainer == nullptr || InValue == nullptr)
 	{
