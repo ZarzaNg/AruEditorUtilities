@@ -39,7 +39,8 @@ public class AruEditorUtilities : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"GameplayTags"
+				"GameplayTags", 
+				"MessageLog",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

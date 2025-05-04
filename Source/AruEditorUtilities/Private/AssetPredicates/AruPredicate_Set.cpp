@@ -1,5 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_Set.h"
 
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 void FAruPredicate_AddSetElement::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
@@ -46,6 +47,7 @@ void FAruPredicate_AddSetElement::Execute(FProperty* InProperty, void* InContain
 	FScriptSetHelper SetHelper(SetProperty, InValue);
 	if(SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate values", "The value pending to add already exists in this set."));
 		return;
 	}
 	
@@ -186,6 +188,7 @@ void FAruPredicate_ModifySetValue::Execute(FProperty* InProperty, void* InContai
 		
 		if(SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
 		{
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate values", "The modified value already exists in this set."));
 			continue;
 		}
 
@@ -193,3 +196,5 @@ void FAruPredicate_ModifySetValue::Execute(FProperty* InProperty, void* InContai
 		SetHelper.Rehash();
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

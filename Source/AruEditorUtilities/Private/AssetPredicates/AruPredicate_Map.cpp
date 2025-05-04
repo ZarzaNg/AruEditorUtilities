@@ -1,4 +1,5 @@
 ﻿#include "AssetPredicates/AruPredicate_Map.h"
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 void FAruPredicate_AddMapPair::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
@@ -45,7 +46,7 @@ void FAruPredicate_AddMapPair::Execute(FProperty* InProperty, void* InContainer,
 	FScriptMapHelper MapHelper{MapProperty, InValue};
 	if(MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
 	{
-		// TODO: Add message log here.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate keys", "The key pending to add already exists in this map."));
 		return;
 	}
 	
@@ -253,7 +254,7 @@ void FAruPredicate_ModifyMapPair::Execute(FProperty* InProperty, void* InContain
 
 		if(MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
 		{
-			// TODO: Log
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate keys", "The modified key already exists in this map."));
 			continue;
 		}
 		KeyProperty->CopyCompleteValue(MapKeyPtr, PendingKeyPtr);
@@ -270,3 +271,4 @@ void FAruPredicate_ModifyMapPair::Execute(FProperty* InProperty, void* InContain
 		MapHelper.Rehash();
 	}
 }
+#undef LOCTEXT_NAMESPACE
