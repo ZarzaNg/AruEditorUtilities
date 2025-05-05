@@ -27,6 +27,11 @@ public:
 		const FProperty* InProperty,
 		const void* InPropertyPtr,
 		const FString& Path);
+
+	static FAruPropertyContext FindPropertyByPath(
+		const UStruct* InStructType,
+		const void* InStructPtr,
+		const FString& Path);
 	
 	static void ProcessContainerValues(
 		FProperty* PropertyPtr,
