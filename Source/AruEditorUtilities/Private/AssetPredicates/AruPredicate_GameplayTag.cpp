@@ -25,7 +25,10 @@ void FAruPredicate_SetGameplayTag::Execute(FProperty* InProperty, void* InContai
 		return;
 	}
 
-	*GameplayTagPtr = FGameplayTag{NewVal};
+	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetGameplayTag>())
+	{
+		StructProperty->CopyCompleteValue(InValue, PendingValue);
+	}
 }
 
 void FAruPredicate_SetGameplayTagContainer::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
@@ -52,6 +55,9 @@ void FAruPredicate_SetGameplayTagContainer::Execute(FProperty* InProperty, void*
 	{
 		return;
 	}
-
-	*GameplayTagPtr = FGameplayTagContainer{NewVal};
+	
+	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetGameplayTagContainer>())
+	{
+		StructProperty->CopyCompleteValue(InValue, PendingValue);
+	}
 }

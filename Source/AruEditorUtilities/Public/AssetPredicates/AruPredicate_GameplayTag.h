@@ -1,27 +1,27 @@
 ﻿#pragma once
-#include "AruTypes.h"
 #include "GameplayTagContainer.h"
+#include "AruPredicate_PropertySetter.h"
 #include "AruPredicate_GameplayTag.generated.h"
 
 USTRUCT(BlueprintType, DisplayName="Set GameplayTag")
-struct FAruPredicate_SetGameplayTag : public  FAruPredicate
+struct FAruPredicate_SetGameplayTag : public  FAruPredicate_PropertySetter
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
-	FGameplayTag NewVal;
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
+	FGameplayTag NewValue;
 public:
 	virtual ~FAruPredicate_SetGameplayTag() override {};
 	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set GameplayTag Container")
-struct FAruPredicate_SetGameplayTagContainer : public  FAruPredicate
+struct FAruPredicate_SetGameplayTagContainer : public  FAruPredicate_PropertySetter
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
-	FGameplayTagContainer NewVal;
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
+	FGameplayTagContainer NewValue;
 public:
 	virtual ~FAruPredicate_SetGameplayTagContainer() override {};
 	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
