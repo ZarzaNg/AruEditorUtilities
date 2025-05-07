@@ -1,5 +1,8 @@
 ﻿#include "AssetPredicates/AruPredicate_PropertySetter.h"
+#include "UObject/PropertyAccessUtil.h"
 #include "AruFunctionLibrary.h"
+
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
 {
@@ -10,7 +13,10 @@ void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InContaine
 
 	if(const FBoolProperty* BoolProperty = CastField<FBoolProperty>(InProperty))
 	{
-		BoolProperty->SetPropertyValue(InValue, NewVal);
+		if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetBoolValue>())
+		{
+			BoolProperty->CopyCompleteValue(InValue, PendingValue);
+		}
 	}
 }
 
@@ -27,7 +33,11 @@ void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InContain
 		{
 			return;
 		}
-		NumericProperty->SetFloatingPointPropertyValue(InValue, NewVal);
+		
+		if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetFloatValue>())
+		{
+			NumericProperty->CopyCompleteValue(InValue, PendingValue);
+		}
 	}
 }
 
@@ -44,7 +54,11 @@ void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InConta
 		{
 			return;
 		}
-		NumericProperty->SetIntPropertyValue(InValue, NewVal);
+
+		if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetIntegerValue>())
+		{
+			NumericProperty->CopyCompleteValue(InValue, PendingValue);
+		}
 	}
 }
 
@@ -57,7 +71,35 @@ void FAruPredicate_SetNameValue::Execute(FProperty* InProperty, void* InContaine
 
 	if(const FNameProperty* NameProperty = CastField<FNameProperty>(InProperty))
 	{
-		NameProperty->SetPropertyValue(InValue, NewVal);
+		if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetNameValue>())
+		{
+			NameProperty->CopyCompleteValue(InValue, PendingValue);
+		}
+	}
+}
+
+void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+{
+	if(InProperty == nullptr || InValue == nullptr)
+	{
+		return;
+	}
+
+	const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty);
+	if(ObjectProperty == nullptr)
+	{
+		return;
+	}
+	
+	const UClass* ClassType = ObjectProperty->PropertyClass;
+	if(ClassType == nullptr)
+	{
+		return;
+	}
+
+	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetObjectValue>(ClassType))
+	{
+		ObjectProperty->CopyCompleteValue(InValue, PendingValue);
 	}
 }
 
@@ -80,45 +122,10 @@ void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContai
 		return;  
 	}
 
-	const UScriptStruct* TargetStructType = NewVal.GetScriptStruct();
-	if(TargetStructType == nullptr || TargetStructType == FInstancedStruct::StaticStruct())  
-	{          
-		return;  
-	}
-
-	if(SourceStructType != TargetStructType)
+	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetStructValue>(SourceStructType))
 	{
-		return;
+		StructProperty->CopyCompleteValue(InValue, PendingValue);
 	}
-
-	SourceStructType->CopyScriptStruct(InValue, NewVal.GetMemory());
-}
-
-void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
-{
-	if(InProperty == nullptr || InValue == nullptr)
-	{
-		return;
-	}
-
-	const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty);
-	if(ObjectProperty == nullptr)
-	{
-		return;
-	}
-	
-	const UClass* ClassType = ObjectProperty->PropertyClass;
-	if(ClassType == nullptr)
-	{
-		return;
-	}
-
-	if(NewVal != nullptr && !NewVal->GetClass()->IsChildOf(ClassType))
-	{
-		return;
-	}
-
-	ObjectProperty->SetObjectPtrPropertyValue(InValue, NewVal);
 }
 
 void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
@@ -146,5 +153,10 @@ void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void*
 		return;  
 	}
 
-	*InstancedStructPtr = NewVal;
+	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetInstancedStructValue>(StructType))
+	{
+		StructProperty->CopyCompleteValue(InValue, PendingValue);
+	}
 }
+
+#undef LOCTEXT_NAMESPACE

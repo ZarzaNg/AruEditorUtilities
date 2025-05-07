@@ -63,74 +63,40 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		Action.Invoke(PropertyPtr, ContainerPtr, ValuePtr);
 	}
     
-    if(FObjectProperty* ObjectProperty = CastField<FObjectProperty>(PropertyPtr))  
+    if(FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(PropertyPtr))  
     {       
-		UObject* ObjectPtr = ObjectProperty->GetObjectPropertyValue(ValuePtr);  
-		if(ObjectPtr == nullptr)  
+		UObject* NativeObject = ObjectProperty->GetObjectPropertyValue(ValuePtr);  
+		if(NativeObject == nullptr)  
 		{          
 			return;  
 		}
 
-		for(TFieldIterator<FProperty> It{ObjectPtr->GetClass()}; It; ++It)  
+    	UClass* NativeClass = NativeObject->GetClass();
+    	if(NativeClass == nullptr)
+    	{
+    		return;
+    	}
+
+    	if(UBlueprint* BlueprintAsset = Cast<UBlueprint>(NativeObject))
+    	{
+    		NativeClass = BlueprintAsset->GeneratedClass;
+    		NativeObject = NativeClass->GetDefaultObject();
+    	}
+
+		for(TFieldIterator<FProperty> It{NativeClass}; It; ++It)  
 		{          
 			FProperty* Property = *It;  
 			if(Property == nullptr)  
 			{             
 				continue;  
 			}          
-			void* ObjectValuePtr = Property->ContainerPtrToValuePtr<void>(ObjectPtr);  
+			void* ObjectValuePtr = Property->ContainerPtrToValuePtr<void>(NativeObject);  
 			if(ValuePtr == nullptr)  
 			{             
 				continue;  
 			}          
-			ProcessContainerValues(Property, ObjectPtr, ObjectValuePtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(Property, NativeObject, ObjectValuePtr, Actions, RemainTimes - 1);  
 		}    
-	}
-	else if(FWeakObjectProperty* WeakObjectProperty = CastField<FWeakObjectProperty>(PropertyPtr))
-	{
-		UObject* ObjectPtr = WeakObjectProperty->GetObjectPropertyValue(ValuePtr);
-		if(ObjectPtr == nullptr)  
-		{          
-			return;  
-		}
-
-		for(TFieldIterator<FProperty> It{ObjectPtr->GetClass()}; It; ++It)  
-		{          
-			FProperty* Property = *It;  
-			if(Property == nullptr)  
-			{             
-				continue;  
-			}          
-			void* ObjectValuePtr = Property->ContainerPtrToValuePtr<void>(ObjectPtr);  
-			if(ValuePtr == nullptr)  
-			{             
-				continue;  
-			}          
-			ProcessContainerValues(Property, ObjectPtr, ObjectValuePtr, Actions, RemainTimes - 1);  
-		}   
-	}
-	else if(FSoftObjectProperty* SoftObjectProperty = CastField<FSoftObjectProperty>(PropertyPtr))
-	{
-		UObject* ObjectPtr = SoftObjectProperty->GetObjectPropertyValue(ValuePtr);
-		if(ObjectPtr == nullptr)  
-		{          
-			return;  
-		}
-
-		for(TFieldIterator<FProperty> It{ObjectPtr->GetClass()}; It; ++It)  
-		{          
-			FProperty* Property = *It;  
-			if(Property == nullptr)  
-			{             
-				continue;  
-			}          
-			void* ObjectValuePtr = Property->ContainerPtrToValuePtr<void>(ObjectPtr);  
-			if(ValuePtr == nullptr)  
-			{             
-				continue;  
-			}          
-			ProcessContainerValues(Property, ObjectPtr, ObjectValuePtr, Actions, RemainTimes - 1);  
-		} 
 	}
 	else if(FStructProperty* StructProperty = CastField<FStructProperty>(PropertyPtr))  
 	{       

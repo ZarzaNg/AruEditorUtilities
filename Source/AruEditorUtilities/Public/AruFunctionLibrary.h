@@ -10,6 +10,8 @@ struct FAruPropertyContext
 {
 	void* ValuePtr			= nullptr;
 	FProperty* PropertyPtr	= nullptr;
+
+	FORCEINLINE bool IsValid() const { return ValuePtr != nullptr && PropertyPtr != nullptr; }
 };
 
 UCLASS()
