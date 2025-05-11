@@ -91,6 +91,109 @@ bool FAruFilter_ByObject::IsConditionMet(const FProperty* InProperty, const void
 	return (ObjectPtr == ConditionValue) ^ bInverseCondition;
 }
 
+bool FAruFilter_ByEnum::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+{
+	if(InProperty == nullptr || ConditionValue.IsEmpty())
+	{
+		return bInverseCondition;
+	}
+
+	const FEnumProperty* EnumProperty = CastField<FEnumProperty>(InProperty);
+	if(EnumProperty == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	const UEnum* EnumType = EnumProperty->GetEnum();
+	if(EnumType == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	const FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
+	if(UnderlyingProperty == nullptr)
+	{
+		return bInverseCondition;
+	}
+	
+	const int64 ConditionEnumValue = EnumType->GetValueByNameString(*ConditionValue);
+	if(ConditionEnumValue == INDEX_NONE)
+	{
+		return bInverseCondition;
+	}
+	
+	const int64 InEnumValue = UnderlyingProperty->GetSignedIntPropertyValue(InValue);
+	return	(
+			(CompareOp == EAruBooleanCompareOp::Is && ConditionEnumValue == InEnumValue) ||
+			(CompareOp == EAruBooleanCompareOp::Not && ConditionEnumValue != InEnumValue)
+			) ^ bInverseCondition;
+}
+
+bool FAruFilter_ByString::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+{
+	if(InProperty == nullptr || ConditionValue.IsEmpty())
+	{
+		return bInverseCondition;
+	}
+
+	const FStrProperty* StrProperty = CastField<FStrProperty>(InProperty);
+	if(StrProperty == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	const FString* InStringValue = static_cast<const FString*>(InValue);
+	if(InStringValue == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	ESearchCase::Type SearchCase = bCaseSensitive? ESearchCase::CaseSensitive : ESearchCase::IgnoreCase;
+	if(CompareOp == EAruContainerCompareOp::HasAll)
+	{
+		return InStringValue->Equals(ConditionValue, SearchCase) ^ bInverseCondition;
+	}
+	else if(CompareOp == EAruContainerCompareOp::HasAny)
+	{
+		return InStringValue->Contains(ConditionValue, SearchCase) ^ bInverseCondition;
+	}
+
+	return bInverseCondition;
+}
+
+bool FAruFilter_ByText::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+{
+	if(InProperty == nullptr || ConditionValue.IsEmpty())
+	{
+		return bInverseCondition;
+	}
+
+	const FTextProperty* TextProperty = CastField<FTextProperty>(InProperty);
+	if(TextProperty == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	const FText* InTextValue = static_cast<const FText*>(InValue);
+	if(InTextValue == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	const FString& InStringValue = InTextValue->ToString();
+	ESearchCase::Type SearchCase = bCaseSensitive? ESearchCase::CaseSensitive : ESearchCase::IgnoreCase;
+	if(CompareOp == EAruContainerCompareOp::HasAll)
+	{
+		return InStringValue.Equals(ConditionValue, SearchCase) ^ bInverseCondition;
+	}
+	else if(CompareOp == EAruContainerCompareOp::HasAny)
+	{
+		return InStringValue.Contains(ConditionValue, SearchCase) ^ bInverseCondition;
+	}
+
+	return bInverseCondition;
+}
+
 bool FAruFilter_ByGameplayTagContainer::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr || TagQuery.IsEmpty())

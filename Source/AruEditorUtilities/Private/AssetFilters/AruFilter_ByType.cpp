@@ -24,10 +24,37 @@ bool FAruFilter_ByObjectType::IsConditionMet(const FProperty* InProperty, const 
 		return bInverseCondition;
 	}
 
-	return (ClassType == ObjectType) ^ bInverseCondition;
+	return ObjectType->IsChildOf(ClassType) ^ bInverseCondition;
 }
 
 bool FAruFilter_ByStructType::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+{
+	if(StructType == nullptr)
+	{
+		return !bInverseCondition;
+	}
+	
+	if(InProperty == nullptr)
+	{
+		return bInverseCondition;
+	}
+	
+	const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
+	if(StructProperty == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	const UScriptStruct* InStructType = StructProperty->Struct;
+	if(InStructType == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	return StructType->IsChildOf(InStructType) ^ bInverseCondition;
+}
+
+bool FAruFilter_ByInstancedStructType::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
 	if(StructType == nullptr)
 	{
@@ -46,21 +73,22 @@ bool FAruFilter_ByStructType::IsConditionMet(const FProperty* InProperty, const 
 	}
 
 	const UScriptStruct* InStructType = StructProperty->Struct;
-	if(InStructType == nullptr)
+	if(InStructType != FInstancedStruct::StaticStruct())
 	{
 		return bInverseCondition;
 	}
 
-	if(InStructType != FInstancedStruct::StaticStruct())
-	{
-		return (InStructType == StructType) ^ bInverseCondition;
-	}
-
 	const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(InValue);  
-	if(InstancedStructPtr == nullptr || !InstancedStructPtr->IsValid())  
+	if(InstancedStructPtr == nullptr)  
 	{             
 		return bInverseCondition;  
 	}
 
-	return (InstancedStructPtr->GetScriptStruct() == StructType) ^ bInverseCondition;
+	const UScriptStruct* NativeStructType = InstancedStructPtr->GetScriptStruct();
+	if(NativeStructType == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	return StructType->IsChildOf(NativeStructType) ^ bInverseCondition;
 }

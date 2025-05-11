@@ -26,7 +26,7 @@ enum class EAruContainerCompareOp : uint8
 	HasAll
 };
 
-USTRUCT(BlueprintType, DisplayName="Numeric")
+USTRUCT(BlueprintType, DisplayName="Is Numeric Value Eligible")
 struct FAruFilter_ByNumericValue : public FAruFilter
 {
 	GENERATED_BODY()
@@ -41,7 +41,7 @@ protected:
 	EAruNumericCompareOp CompareOp = EAruNumericCompareOp::Equip;
 };
 
-USTRUCT(BlueprintType, DisplayName="Boolean")
+USTRUCT(BlueprintType, DisplayName="Is Boolean Value Eligible")
 struct FAruFilter_ByBoolean : public FAruFilter
 {
 	GENERATED_BODY()
@@ -56,7 +56,7 @@ protected:
 	EAruBooleanCompareOp CompareOp = EAruBooleanCompareOp::Is;
 };
 
-USTRUCT(BlueprintType, DisplayName="Object")
+USTRUCT(BlueprintType, DisplayName="Is Object Value Eligible")
 struct FAruFilter_ByObject : public FAruFilter
 {
 	GENERATED_BODY()
@@ -71,7 +71,58 @@ protected:
 	EAruBooleanCompareOp CompareOp = EAruBooleanCompareOp::Is;
 };
 
-USTRUCT(BlueprintType, DisplayName="Gameplay Tag")
+USTRUCT(BlueprintType, DisplayName="Is Enumeration Value Eligible")
+struct FAruFilter_ByEnum : public FAruFilter
+{
+	GENERATED_BODY()
+public:
+	virtual ~FAruFilter_ByEnum() override {};
+	virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue) const override;
+protected:
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	FString ConditionValue{};
+
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	EAruBooleanCompareOp CompareOp = EAruBooleanCompareOp::Is;
+};
+
+USTRUCT(BlueprintType, DisplayName="Is String Value Eligible")
+struct FAruFilter_ByString : public FAruFilter
+{
+	GENERATED_BODY()
+public:
+	virtual ~FAruFilter_ByString() override {};
+	virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue) const override;
+protected:
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	FString ConditionValue{};
+
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	EAruContainerCompareOp CompareOp = EAruContainerCompareOp::HasAny;
+	
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	bool bCaseSensitive = false;
+};
+
+USTRUCT(BlueprintType, DisplayName="Is Text Value Eligible")
+struct FAruFilter_ByText : public FAruFilter
+{
+	GENERATED_BODY()
+public:
+	virtual ~FAruFilter_ByText() override {};
+	virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue) const override;
+protected:
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	FString ConditionValue{};
+
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	EAruContainerCompareOp CompareOp = EAruContainerCompareOp::HasAny;
+
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	bool bCaseSensitive = false;
+};
+
+USTRUCT(BlueprintType, DisplayName="Are GameplayTags Eligible")
 struct FAruFilter_ByGameplayTagContainer : public FAruFilter
 {
 	GENERATED_BODY()

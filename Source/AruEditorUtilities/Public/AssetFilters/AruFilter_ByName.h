@@ -2,7 +2,7 @@
 #include "AruTypes.h"
 #include "AruFilter_ByName.generated.h"
 
-USTRUCT(BlueprintType, DisplayName="Property Name")
+USTRUCT(BlueprintType, DisplayName="Does Property Name Match")
 struct FAruFilter_ByName : public FAruFilter
 {
 	GENERATED_BODY()
