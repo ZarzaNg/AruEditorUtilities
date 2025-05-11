@@ -4,7 +4,7 @@
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
-void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -32,7 +32,7 @@ void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InContaine
 	BoolProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
-void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -65,7 +65,7 @@ void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InContain
 	NumericProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
-void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -98,7 +98,7 @@ void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InConta
 	NumericProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
-void FAruPredicate_SetNameValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_SetNameValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -126,7 +126,7 @@ void FAruPredicate_SetNameValue::Execute(FProperty* InProperty, void* InContaine
 	NameProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
-void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -151,7 +151,7 @@ void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContai
 	}
 }
 
-void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -185,7 +185,7 @@ void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContai
 	StructProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
-void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{

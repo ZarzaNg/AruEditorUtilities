@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_PathToProperty.h"
 #include "AruFunctionLibrary.h"
 
-void FAruPredicate_PathToProperty::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_PathToProperty::Execute(FProperty* InProperty, void* InValue) const
 {
 	if(PathToProperty.IsEmpty() || InValue == nullptr || !Predicate.IsValid())
 	{
@@ -16,6 +16,6 @@ void FAruPredicate_PathToProperty::Execute(FProperty* InProperty, void* InContai
 	
 	if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 	{
-		PredicatePtr->Execute(PropertyContext.PropertyPtr, nullptr, PropertyContext.ValuePtr.GetValue());
+		PredicatePtr->Execute(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue());
 	}
 }

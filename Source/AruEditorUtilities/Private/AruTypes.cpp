@@ -1,17 +1,15 @@
 ﻿#include "AruTypes.h"
 
-#include "AruFunctionLibrary.h"
-
-void FAruActionDefinition::Invoke(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruActionDefinition::Invoke(FProperty* InProperty, void* InValue) const
 {
-	if(InProperty == nullptr || InContainer == nullptr || InValue == nullptr)
+	if(InProperty == nullptr || InValue == nullptr)
 	{
 		return;
 	}
 
 	for(auto& Condition : ForEachCondition())
 	{
-		if(!Condition.IsConditionMet(InProperty, InContainer, InValue))
+		if(!Condition.IsConditionMet(InProperty, InValue))
 		{
 			return;
 		}
@@ -19,6 +17,6 @@ void FAruActionDefinition::Invoke(FProperty* InProperty, void* InContainer, void
 
 	for(auto& Predicate : ForEachPredicates())
 	{
-		Predicate.Execute(InProperty, InContainer, InValue);
+		Predicate.Execute(InProperty, InValue);
 	}
 }

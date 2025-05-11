@@ -1,6 +1,6 @@
 ﻿#include "AssetFilters/AruFilter_ByValue.h"
 
-bool FAruFilter_ByNumericValue::IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const
+bool FAruFilter_ByNumericValue::IsConditionMet(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -49,7 +49,7 @@ bool FAruFilter_ByNumericValue::IsConditionMet(FProperty* InProperty, void* InCo
 	return bInverseCondition;
 }
 
-bool FAruFilter_ByBoolean::IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const
+bool FAruFilter_ByBoolean::IsConditionMet(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -78,7 +78,7 @@ bool FAruFilter_ByBoolean::IsConditionMet(FProperty* InProperty, void* InContain
 	return CompareValue(BooleanProperty->GetPropertyValue(InValue)) ^ bInverseCondition;
 }
 
-bool FAruFilter_ByObject::IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const
+bool FAruFilter_ByObject::IsConditionMet(FProperty* InProperty, void* InValue) const
 {
 	FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty);
 	if(ObjectProperty == nullptr)
@@ -91,7 +91,7 @@ bool FAruFilter_ByObject::IsConditionMet(FProperty* InProperty, void* InContaine
 	return (ObjectPtr == ConditionValue) ^ bInverseCondition;
 }
 
-bool FAruFilter_ByGameplayTagContainer::IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const
+bool FAruFilter_ByGameplayTagContainer::IsConditionMet(FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr || TagQuery.IsEmpty())
 	{

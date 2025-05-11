@@ -45,7 +45,6 @@ public:
 	
 	static void ProcessContainerValues(
 		FProperty* PropertyPtr,
-		void* ContainerPtr,
 		void* ValuePtr,
 		const TArray<FAruActionDefinition>& Actions,
 		const uint8 RemainTimes);

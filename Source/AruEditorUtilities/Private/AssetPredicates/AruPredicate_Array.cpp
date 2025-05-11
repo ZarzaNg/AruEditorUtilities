@@ -1,6 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_Array.h"
 
-void FAruPredicate_AddArrayValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_AddArrayValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -30,11 +30,11 @@ void FAruPredicate_AddArrayValue::Execute(FProperty* InProperty, void* InContain
 			continue;
 		}
 		
-		PredicatePtr->Execute(ElementProperty, InContainer, NewElementPtr);
+		PredicatePtr->Execute(ElementProperty, NewElementPtr);
 	}
 }
 
-void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -57,7 +57,7 @@ void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InCont
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(ArrayProperty->Inner, InContainer, ValuePtr))
+			if(!Filter->IsConditionMet(ArrayProperty->Inner, ValuePtr))
 			{
 				return false;
 			}
@@ -81,7 +81,7 @@ void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InCont
 	}
 }
 
-void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
+void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InValue) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -104,7 +104,7 @@ void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InCont
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(ArrayProperty->Inner, InContainer, ValuePtr))
+			if(!Filter->IsConditionMet(ArrayProperty->Inner, ValuePtr))
 			{
 				return false;
 			}
@@ -126,7 +126,7 @@ void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InCont
 					continue;
 				}
 
-				Predicate->Execute(ArrayProperty->Inner, InContainer, ElementPtr);
+				Predicate->Execute(ArrayProperty->Inner, ElementPtr);
 			}
 		}
 	}

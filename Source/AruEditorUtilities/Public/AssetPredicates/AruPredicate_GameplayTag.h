@@ -12,7 +12,7 @@ protected:
 	FGameplayTag NewValue;
 public:
 	virtual ~FAruPredicate_SetGameplayTag() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual void Execute(FProperty* InProperty, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set GameplayTag Container")
@@ -24,5 +24,5 @@ protected:
 	FGameplayTagContainer NewValue;
 public:
 	virtual ~FAruPredicate_SetGameplayTagContainer() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual void Execute(FProperty* InProperty, void* InValue) const override;
 };

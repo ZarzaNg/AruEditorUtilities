@@ -34,7 +34,7 @@ void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const T
 				continue;
 			}
 			
-			ProcessContainerValues(Property, Object, ValuePtr, ActionDefinitions, MaxDepth);  
+			ProcessContainerValues(Property, ValuePtr, ActionDefinitions, MaxDepth);  
 		}
 
 		Object->Modify();
@@ -43,7 +43,6 @@ void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const T
 
 void UAruFunctionLibrary::ProcessContainerValues(
 	FProperty* PropertyPtr,
-	void* ContainerPtr,
 	void* ValuePtr,
 	const TArray<FAruActionDefinition>& Actions,
 	const uint8 RemainTimes)
@@ -53,14 +52,14 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		return;
 	}
 	
-	if(PropertyPtr == nullptr || ContainerPtr == nullptr || ValuePtr == nullptr)  
+	if(PropertyPtr == nullptr || ValuePtr == nullptr)  
     {       
     	return;  
     }
 
 	for(const auto& Action : Actions)
 	{
-		Action.Invoke(PropertyPtr, ContainerPtr, ValuePtr);
+		Action.Invoke(PropertyPtr, ValuePtr);
 	}
     
     if(FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(PropertyPtr))  
@@ -95,7 +94,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 			{             
 				continue;  
 			}          
-			ProcessContainerValues(Property, NativeObject, ObjectValuePtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(Property, ObjectValuePtr, Actions, RemainTimes - 1);  
 		}    
 	}
 	else if(FStructProperty* StructProperty = CastField<FStructProperty>(PropertyPtr))  
@@ -143,7 +142,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 				{                
 					continue;  
 				}          
-				ProcessContainerValues(Property, InstancedStructContainer, StructValuePtr,Actions, RemainTimes - 1);      
+				ProcessContainerValues(Property, StructValuePtr, Actions,RemainTimes - 1);      
 			}  
 		}       
 		else  
@@ -160,7 +159,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 				{                
 					continue;  
 				}          
-				ProcessContainerValues(Property, ValuePtr, StructValuePtr, Actions, RemainTimes - 1);  
+				ProcessContainerValues(Property, StructValuePtr, Actions, RemainTimes - 1);  
 			}       
 		}    
 	}    
@@ -170,7 +169,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		for(int32 Index = 0; Index < ArrayHelper.Num(); ++Index)  
 		{          
 			void* ItemPtr = ArrayHelper.GetRawPtr(Index);  
-			ProcessContainerValues(ArrayProperty->Inner, ContainerPtr, ItemPtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(ArrayProperty->Inner, ItemPtr, Actions, RemainTimes - 1);  
 		}    
 	}    
 	else if(FMapProperty* MapProperty = CastField<FMapProperty>(PropertyPtr))  
@@ -180,8 +179,8 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		{         
 			void* MapKeyPtr = MapHelper.GetKeyPtr(Index);  
 			void* MapValuePtr = MapHelper.GetValuePtr(Index);  
-			ProcessContainerValues(MapProperty->KeyProp, ContainerPtr, MapKeyPtr, Actions, RemainTimes - 1);  
-			ProcessContainerValues(MapProperty->ValueProp, ContainerPtr, MapValuePtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(MapProperty->KeyProp, MapKeyPtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(MapProperty->ValueProp, MapValuePtr, Actions, RemainTimes - 1);  
 		}    
 	}    
 	else if(FSetProperty* SetProperty = CastField<FSetProperty>(PropertyPtr))  
@@ -190,7 +189,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		for(int32 Index = 0; Index < SetHelper.Num(); ++Index)  
 		{          
 			void* ItemPtr = SetHelper.GetElementPtr(Index);  
-			ProcessContainerValues(SetProperty->ElementProp, ContainerPtr, ItemPtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(SetProperty->ElementProp, ItemPtr, Actions, RemainTimes - 1);  
 		}    
 	}
 }

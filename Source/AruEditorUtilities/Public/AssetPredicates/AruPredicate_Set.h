@@ -8,7 +8,7 @@ struct FAruPredicate_AddSetElement : public  FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_AddSetElement() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual void Execute(FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruPredicate>> Predicates;
@@ -20,7 +20,7 @@ struct FAruPredicate_RemoveSetValue : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_RemoveSetValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual void Execute(FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruFilter>> Filters;
@@ -32,7 +32,7 @@ struct FAruPredicate_ModifySetValue : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_ModifySetValue() override{};
-	virtual void Execute(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual void Execute(FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruFilter>> Filters;

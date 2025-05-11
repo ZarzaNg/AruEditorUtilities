@@ -32,7 +32,7 @@ struct FAruFilter_ByNumericValue : public FAruFilter
 	GENERATED_BODY()
 public:
 	virtual ~FAruFilter_ByNumericValue() override {};
-	virtual bool IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual bool IsConditionMet(FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
 	float ConditionValue = 0.f;
@@ -47,7 +47,7 @@ struct FAruFilter_ByBoolean : public FAruFilter
 	GENERATED_BODY()
 public:
 	virtual ~FAruFilter_ByBoolean() override {};
-	virtual bool IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual bool IsConditionMet(FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
 	bool ConditionValue = false;
@@ -62,7 +62,7 @@ struct FAruFilter_ByObject : public FAruFilter
 	GENERATED_BODY()
 public:
 	virtual ~FAruFilter_ByObject() override {};
-	virtual bool IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual bool IsConditionMet(FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
 	TObjectPtr<UObject> ConditionValue = nullptr;
@@ -77,7 +77,7 @@ struct FAruFilter_ByGameplayTagContainer : public FAruFilter
 	GENERATED_BODY()
 public:
 	virtual ~FAruFilter_ByGameplayTagContainer() override {};
-	virtual bool IsConditionMet(FProperty* InProperty, void* InContainer, void* InValue) const override;
+	virtual bool IsConditionMet(FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
 	FGameplayTagQuery TagQuery;
