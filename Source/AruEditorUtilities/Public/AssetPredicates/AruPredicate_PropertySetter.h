@@ -37,7 +37,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::DataTable", EditConditionHides))
 	TObjectPtr<UDataTable> DataTable = nullptr;
 
-	template<typename T>
+	template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
 	TOptional<const void*> GetNewValueBySourceType(const UStruct* TypeToCheck = nullptr) const
 	{
 		auto IsCompatibleType = [&TypeToCheck](const FProperty* InProperty, const void* InValue) -> bool
@@ -202,6 +202,35 @@ protected:
 
 		return {};
 	}
+	
+	template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
+	void SetPropertyValue(const FProperty* InProperty, void* InValue) const
+	{
+		if(InProperty == nullptr || InValue == nullptr)
+		{
+			return;
+		}
+
+		const T* SubProperty = CastField<T>(InProperty);
+		if(SubProperty == nullptr)
+		{
+			return;
+		}
+
+		TOptional<const void*> OptionalValue = GetNewValueBySourceType<T>();
+		if(!OptionalValue.IsSet())
+		{
+			return;
+		}
+
+		const void* PendingValue = OptionalValue.GetValue();
+		if(PendingValue == nullptr)
+		{
+			return;
+		}
+	
+		SubProperty->CopyCompleteValue(InValue, PendingValue);
+	}
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Bool Value")
@@ -239,6 +268,32 @@ protected:
 	int64 NewValue = 0;
 public:
 	virtual ~FAruPredicate_SetIntegerValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+};
+
+USTRUCT(BlueprintType, DisplayName="Set String Value")
+struct FAruPredicate_SetStringValue : public FAruPredicate_PropertySetter
+{
+	GENERATED_BODY()
+protected:
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
+	FString NewValue{};
+public:
+	virtual ~FAruPredicate_SetStringValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+};
+
+USTRUCT(BlueprintType, DisplayName="Set Text Value")
+struct FAruPredicate_SetTextValue : public FAruPredicate_PropertySetter
+{
+	GENERATED_BODY()
+protected:
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
+	FString NewValue{};
+public:
+	virtual ~FAruPredicate_SetTextValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };

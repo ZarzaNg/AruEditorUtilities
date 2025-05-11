@@ -1,35 +1,11 @@
 ﻿#include "AssetPredicates/AruPredicate_PropertySetter.h"
-#include "UObject/PropertyAccessUtil.h"
 #include "AruFunctionLibrary.h"
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 void FAruPredicate_SetBoolValue::Execute(const FProperty* InProperty, void* InValue) const
 {
-	if(InProperty == nullptr || InValue == nullptr)
-	{
-		return;
-	}
-
-	const FBoolProperty* BoolProperty = CastField<FBoolProperty>(InProperty);
-	if(BoolProperty == nullptr)
-	{
-		return;
-	}
-
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FBoolProperty>();
-	if(!OptionalValue.IsSet())
-	{
-		return;
-	}
-
-	const void* PendingValue = OptionalValue.GetValue();
-	if(PendingValue == nullptr)
-	{
-		return;
-	}
-	
-	BoolProperty->CopyCompleteValue(InValue, PendingValue);
+	SetPropertyValue<FBoolProperty>(InProperty, InValue);
 }
 
 void FAruPredicate_SetFloatValue::Execute(const FProperty* InProperty, void* InValue) const
@@ -50,19 +26,7 @@ void FAruPredicate_SetFloatValue::Execute(const FProperty* InProperty, void* InV
 		return;
 	}
 	
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FNumericProperty>();
-	if(!OptionalValue.IsSet())
-	{
-		return;
-	}
-
-	const void* PendingValue = OptionalValue.GetValue();
-	if(PendingValue == nullptr)
-	{
-		return;
-	}
-	
-	NumericProperty->CopyCompleteValue(InValue, PendingValue);
+	SetPropertyValue<FNumericProperty>(InProperty, InValue);
 }
 
 void FAruPredicate_SetIntegerValue::Execute(const FProperty* InProperty, void* InValue) const
@@ -82,36 +46,29 @@ void FAruPredicate_SetIntegerValue::Execute(const FProperty* InProperty, void* I
 	{
 		return;
 	}
-	
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FNumericProperty>();
-	if(!OptionalValue.IsSet())
-	{
-		return;
-	}
 
-	const void* PendingValue = OptionalValue.GetValue();
-	if(PendingValue == nullptr)
-	{
-		return;
-	}
-	
-	NumericProperty->CopyCompleteValue(InValue, PendingValue);
+	SetPropertyValue<FNumericProperty>(InProperty, InValue);
 }
 
-void FAruPredicate_SetNameValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetStringValue::Execute(const FProperty* InProperty, void* InValue) const
+{
+	SetPropertyValue<FStrProperty>(InProperty, InValue);
+}
+
+void FAruPredicate_SetTextValue::Execute(const FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
 		return;
 	}
 
-	const FNameProperty* NameProperty = CastField<FNameProperty>(InProperty);
-	if(NameProperty == nullptr)
+	const FTextProperty* TextProperty = CastField<FTextProperty>(InProperty);
+	if(TextProperty == nullptr)
 	{
 		return;
 	}
-	
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FNameProperty>();
+
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>();
 	if(!OptionalValue.IsSet())
 	{
 		return;
@@ -122,8 +79,20 @@ void FAruPredicate_SetNameValue::Execute(const FProperty* InProperty, void* InVa
 	{
 		return;
 	}
+
+	const FString* StringValue = static_cast<const FString*>(PendingValue);
+	if(StringValue == nullptr)
+	{
+		return;
+	}
 	
-	NameProperty->CopyCompleteValue(InValue, PendingValue);
+	FText PendingTextValue = FText::FromString(*StringValue);
+	TextProperty->CopyCompleteValue(InValue, &PendingTextValue);
+}
+
+void FAruPredicate_SetNameValue::Execute(const FProperty* InProperty, void* InValue) const
+{
+	SetPropertyValue<FNameProperty>(InProperty, InValue);
 }
 
 void FAruPredicate_SetEnumValue::Execute(const FProperty* InProperty, void* InValue) const
