@@ -30,13 +30,18 @@ public:
 
 	static FAruPropertyContext FindPropertyByPath(
 		const FProperty* InProperty,
-		const void* InPropertyPtr,
+		const void* InPropertyValue,
 		const FString& Path);
 
 	static FAruPropertyContext FindPropertyByPath(
 		const UStruct* InStructType,
-		const void* InStructPtr,
+		const void* InStructValue,
 		const FString& Path);
+
+	static FAruPropertyContext FindPropertyByChain(
+		const FProperty* InProperty,
+		const void* InPropertyValue,
+		const TArrayView<FString> PropertyChain);
 	
 	static void ProcessContainerValues(
 		FProperty* PropertyPtr,

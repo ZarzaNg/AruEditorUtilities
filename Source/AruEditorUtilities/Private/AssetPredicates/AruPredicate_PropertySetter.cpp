@@ -11,13 +11,25 @@ void FAruPredicate_SetBoolValue::Execute(FProperty* InProperty, void* InContaine
 		return;
 	}
 
-	if(const FBoolProperty* BoolProperty = CastField<FBoolProperty>(InProperty))
+	const FBoolProperty* BoolProperty = CastField<FBoolProperty>(InProperty);
+	if(BoolProperty == nullptr)
 	{
-		if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetBoolValue>().GetPtrOrNull())
-		{
-			BoolProperty->CopyCompleteValue(InValue, *PendingValue);
-		}
+		return;
 	}
+
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetBoolValue>();
+	if(!OptionalValue.IsSet())
+	{
+		return;
+	}
+
+	const void* PendingValue = OptionalValue.GetValue();
+	if(PendingValue == nullptr)
+	{
+		return;
+	}
+	
+	BoolProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
 void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
@@ -26,19 +38,31 @@ void FAruPredicate_SetFloatValue::Execute(FProperty* InProperty, void* InContain
 	{
 		return;
 	}
-	
-	if(const FNumericProperty* NumericProperty = CastField<FNumericProperty>(InProperty))
+
+	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(InProperty);
+	if(NumericProperty == nullptr)
 	{
-		if(!NumericProperty->IsFloatingPoint())
-		{
-			return;
-		}
-		
-		if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetFloatValue>().GetPtrOrNull())
-		{
-			NumericProperty->CopyCompleteValue(InValue, *PendingValue);
-		}
+		return;
 	}
+	
+	if(!NumericProperty->IsFloatingPoint())
+	{
+		return;
+	}
+	
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetFloatValue>();
+	if(!OptionalValue.IsSet())
+	{
+		return;
+	}
+
+	const void* PendingValue = OptionalValue.GetValue();
+	if(PendingValue == nullptr)
+	{
+		return;
+	}
+	
+	NumericProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
 void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
@@ -47,19 +71,31 @@ void FAruPredicate_SetIntegerValue::Execute(FProperty* InProperty, void* InConta
 	{
 		return;
 	}
-	
-	if(const FNumericProperty* NumericProperty = CastField<FNumericProperty>(InProperty))
-	{
-		if(!NumericProperty->IsInteger())
-		{
-			return;
-		}
 
-		if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetIntegerValue>().GetPtrOrNull())
-		{
-			NumericProperty->CopyCompleteValue(InValue, *PendingValue);
-		}
+	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(InProperty);
+	if(NumericProperty == nullptr)
+	{
+		return;
 	}
+
+	if(!NumericProperty->IsInteger())
+	{
+		return;
+	}
+	
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetIntegerValue>();
+	if(!OptionalValue.IsSet())
+	{
+		return;
+	}
+
+	const void* PendingValue = OptionalValue.GetValue();
+	if(PendingValue == nullptr)
+	{
+		return;
+	}
+	
+	NumericProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
 void FAruPredicate_SetNameValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
@@ -69,13 +105,25 @@ void FAruPredicate_SetNameValue::Execute(FProperty* InProperty, void* InContaine
 		return;
 	}
 
-	if(const FNameProperty* NameProperty = CastField<FNameProperty>(InProperty))
+	const FNameProperty* NameProperty = CastField<FNameProperty>(InProperty);
+	if(NameProperty == nullptr)
 	{
-		if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetNameValue>().GetPtrOrNull())
-		{
-			NameProperty->CopyCompleteValue(InValue, *PendingValue);
-		}
+		return;
 	}
+	
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetNameValue>();
+	if(!OptionalValue.IsSet())
+	{
+		return;
+	}
+
+	const void* PendingValue = OptionalValue.GetValue();
+	if(PendingValue == nullptr)
+	{
+		return;
+	}
+	
+	NameProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
 void FAruPredicate_SetObjectValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
@@ -122,10 +170,19 @@ void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContai
 		return;  
 	}
 
-	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetStructValue>(SourceStructType).GetValue())
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetStructValue>(SourceStructType);
+	if(!OptionalValue.IsSet())
 	{
-		StructProperty->CopyCompleteValue(InValue, PendingValue);
+		return;
 	}
+
+	const void* PendingValue = OptionalValue.GetValue();
+	if(PendingValue == nullptr)
+	{
+		return;
+	}
+	
+	StructProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
 void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void* InContainer, void* InValue) const
@@ -152,11 +209,20 @@ void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void*
 	{             
 		return;  
 	}
-
-	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetInstancedStructValue>(StructType).GetValue())
+	
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetInstancedStructValue>(StructType);
+	if(!OptionalValue.IsSet())
 	{
-		StructProperty->CopyCompleteValue(InValue, PendingValue);
+		return;
 	}
+
+	const void* PendingValue = OptionalValue.GetValue();
+	if(PendingValue == nullptr)
+	{
+		return;
+	}
+	
+	StructProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
 #undef LOCTEXT_NAMESPACE
