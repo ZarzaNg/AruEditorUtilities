@@ -122,9 +122,9 @@ void FAruPredicate_SetStructValue::Execute(FProperty* InProperty, void* InContai
 		return;  
 	}
 
-	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetStructValue>(SourceStructType).GetPtrOrNull())
+	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetStructValue>(SourceStructType).GetValue())
 	{
-		StructProperty->CopyCompleteValue(InValue, *PendingValue);
+		StructProperty->CopyCompleteValue(InValue, PendingValue);
 	}
 }
 
@@ -153,9 +153,9 @@ void FAruPredicate_SetInstancedStructValue::Execute(FProperty* InProperty, void*
 		return;  
 	}
 
-	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetInstancedStructValue>(StructType).GetPtrOrNull())
+	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetInstancedStructValue>(StructType).GetValue())
 	{
-		StructProperty->CopyCompleteValue(InValue, *PendingValue);
+		StructProperty->CopyCompleteValue(InValue, PendingValue);
 	}
 }
 

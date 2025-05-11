@@ -9,8 +9,13 @@ void FAruPredicate_PathToProperty::Execute(FProperty* InProperty, void* InContai
 	}
 	
 	FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(InProperty, InValue, PathToProperty);
+	if(!PropertyContext.IsValid())
+	{
+		return;
+	}
+	
 	if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 	{
-		PredicatePtr->Execute(PropertyContext.PropertyPtr, nullptr, PropertyContext.ValuePtr);
+		PredicatePtr->Execute(PropertyContext.PropertyPtr, nullptr, PropertyContext.ValuePtr.GetValue());
 	}
 }

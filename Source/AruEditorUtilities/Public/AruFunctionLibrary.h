@@ -8,10 +8,13 @@ struct FAruActionDefinition;
 
 struct FAruPropertyContext
 {
-	void* ValuePtr			= nullptr;
-	FProperty* PropertyPtr	= nullptr;
+	FProperty* PropertyPtr		= nullptr;
+	TOptional<void*> ValuePtr	= {};
 
-	FORCEINLINE bool IsValid() const { return ValuePtr != nullptr && PropertyPtr != nullptr; }
+	FAruPropertyContext() : PropertyPtr(nullptr), ValuePtr({}) {}
+	FAruPropertyContext(FProperty* InPropertyPtr, void* InValuePtr) : PropertyPtr(InPropertyPtr), ValuePtr(TOptional<void*>{InValuePtr}) {} 
+
+	FORCEINLINE bool IsValid() const { return PropertyPtr != nullptr && ValuePtr.IsSet(); }
 };
 
 UCLASS()

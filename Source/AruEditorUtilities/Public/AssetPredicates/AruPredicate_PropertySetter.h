@@ -83,8 +83,14 @@ protected:
 				{             
 					return false;  
 				}
+
+				const UScriptStruct* InnerStruct = InstancedStructPtr->GetScriptStruct();
+				if(InnerStruct == nullptr)
+				{
+					return false;
+				}
 				
-				return InstancedStructPtr->GetScriptStruct()->IsChildOf(TypeToMatch);
+				return InnerStruct->IsChildOf(TypeToMatch);
 			}
 
 			return false;
@@ -134,18 +140,12 @@ protected:
 				}
 				
 				const void* PropertyValue = Property->ContainerPtrToValuePtr<void>(this);
-
-				// Property found, but property value is null.
-				if(PropertyValue == nullptr)
-				{
-					return TOptional<const void*>(nullptr);
-				}
-				
 				if(!TypeMatch(Property, PropertyValue))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
 				}
+				
 				return TOptional<const void*>(PointerWrapper(Property, PropertyValue));
 			}
 		case EAruValueSource::Object:
@@ -165,7 +165,6 @@ protected:
 				}
 
 				auto&& PropertyContext = UAruFunctionLibrary::FindPropertyByPath(NativeClass, NativeObject, PathToProperty);
-				// TODO: Distinguish nullptr and unset.
 				if(!PropertyContext.IsValid())
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
@@ -175,13 +174,13 @@ protected:
 					return {};
 				}
 
-				if(!TypeMatch(PropertyContext.PropertyPtr, PropertyContext.ValuePtr))
+				if(!TypeMatch(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
 				}
 
-				return TOptional<const void*>(PointerWrapper(PropertyContext.PropertyPtr, PropertyContext.ValuePtr));
+				return TOptional<const void*>(PointerWrapper(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()));
 			}
 		case EAruValueSource::DataTable:
 			{
@@ -208,7 +207,6 @@ protected:
 				}
 
 				auto&& PropertyContext = UAruFunctionLibrary::FindPropertyByPath(DataTable->RowStruct, RowStruct, PathToProperty);
-				// TODO: Distinguish nullptr and unset.
 				if(!PropertyContext.IsValid())
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
@@ -218,13 +216,13 @@ protected:
 					return {};
 				}
 
-				if(!TypeMatch(PropertyContext.PropertyPtr, PropertyContext.ValuePtr))
+				if(!TypeMatch(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
 				}
 
-				return TOptional<const void*>(PointerWrapper(PropertyContext.PropertyPtr, PropertyContext.ValuePtr));
+				return TOptional<const void*>(PointerWrapper(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()));
 			}
 		}
 

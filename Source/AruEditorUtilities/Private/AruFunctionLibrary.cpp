@@ -217,33 +217,30 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 			UObject* ObjectPtr = ObjectProperty->GetObjectPropertyValue(CurrentPropertyPtr);
 			if(ObjectPtr == nullptr)
 			{
-				return FAruPropertyContext{};
+				return {};
 			}
 
 			const UClass* ClassType = ObjectPtr->GetClass();
 			if(ClassType == nullptr)
 			{
-				return FAruPropertyContext{};
+				return {};
 			}
 
 			CurrentProperty = ClassType->FindPropertyByName(*Element);
 			if(CurrentProperty == nullptr)
 			{
-				return FAruPropertyContext{};
+				return {};
 			}
 
+			// Ignore nullptr check. If the value is nullptr, we will return nullptr.
 			CurrentPropertyPtr = CurrentProperty->ContainerPtrToValuePtr<void>(ObjectPtr);
-			if(CurrentPropertyPtr == nullptr)
-			{
-				return FAruPropertyContext{};
-			}
 		}
 		else if(const FStructProperty* StructProperty = CastField<FStructProperty>(CurrentProperty))
 		{
 			const UScriptStruct* StructType = StructProperty->Struct;  
 			if(StructType == nullptr)  
 			{          
-				return FAruPropertyContext{};  
+				return {};  
 			}
 
 			if(StructType == FInstancedStruct::StaticStruct())
@@ -251,31 +248,31 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 				const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(CurrentPropertyPtr);  
 				if(InstancedStructPtr == nullptr || !InstancedStructPtr->IsValid())  
 				{             
-					return FAruPropertyContext{};  
+					return {};  
 				}
 				
 				const UScriptStruct* InstancedStructType = InstancedStructPtr->GetScriptStruct();  
 				if(InstancedStructType == nullptr)  
 				{             
-					return FAruPropertyContext{};  
+					return {};  
 				}
 
 				CurrentProperty = InstancedStructType->FindPropertyByName(*Element);
 				if(CurrentProperty == nullptr)
 				{
-					return FAruPropertyContext{};
+					return {};
 				}
 				
 				const void* InstancedStructContainer = InstancedStructPtr->GetMemory();  
 				if(InstancedStructContainer == nullptr)  
 				{             
-					return FAruPropertyContext{};  
+					return {};  
 				}
 
 				CurrentPropertyPtr = CurrentProperty->ContainerPtrToValuePtr<void>(InstancedStructContainer);
 				if(CurrentPropertyPtr == nullptr)
 				{
-					return FAruPropertyContext{};
+					return {};
 				}
 			}
 			else
@@ -283,24 +280,29 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 				CurrentProperty = StructType->FindPropertyByName(*Element);
 				if(CurrentProperty == nullptr)
 				{
-					return FAruPropertyContext{};
+					return {};
 				}
 
 				CurrentPropertyPtr = CurrentProperty->ContainerPtrToValuePtr<void>(CurrentPropertyPtr);
 				if(CurrentPropertyPtr == nullptr)
 				{
-					return FAruPropertyContext{};
+					return {};
 				}
 			}
 		}
 		
 		if(&Element == &PropertyChain.Last())
 		{
-			return FAruPropertyContext{const_cast<void*>(CurrentPropertyPtr), const_cast<FProperty*>(CurrentProperty)};
+			return FAruPropertyContext{const_cast<FProperty*>(CurrentProperty), const_cast<void*>(CurrentPropertyPtr)};
+		}
+		
+		if(CurrentPropertyPtr == nullptr)
+		{
+			return {};
 		}
 	}
 
-	return FAruPropertyContext{};
+	return {};
 }
 
 FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
@@ -310,7 +312,7 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 {
 	if(InStructType == nullptr || InStructPtr == nullptr || Path.IsEmpty())
 	{
-		return FAruPropertyContext{};;
+		return {};
 	}
 
 	TArray<FString> PropertyChain;
@@ -324,39 +326,45 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 		CurrentProperty = CurrentStructType->FindPropertyByName(*Element);
 		if(CurrentProperty == nullptr)
 		{
-			return FAruPropertyContext{};;
-		}
-		CurrentStructPtr = CurrentProperty->ContainerPtrToValuePtr<void>(CurrentStructPtr);
-		if(CurrentStructPtr == nullptr)
-		{
-			return FAruPropertyContext{};;
+			return {};
 		}
 
+		CurrentStructPtr = CurrentProperty->ContainerPtrToValuePtr<void>(CurrentStructPtr);
 		if (&Element == &PropertyChain.Last())
 		{
 			break;
 		}
-
+		
 		if(const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(CurrentProperty))
 		{
+			if(CurrentStructPtr == nullptr)
+			{
+				return {};
+			}
+			
 			UObject* ObjectPtr = ObjectProperty->GetObjectPropertyValue(CurrentStructPtr);
 			if(ObjectPtr == nullptr)
 			{
-				return FAruPropertyContext{};;
+				return {};
 			}
 
 			CurrentStructType = ObjectPtr->GetClass();
 			if(CurrentStructType == nullptr)
 			{
-				return FAruPropertyContext{};;
+				return {};
 			}
 		}
 		else if(const FStructProperty* StructProperty = CastField<FStructProperty>(CurrentProperty))
 		{
+			if(CurrentStructPtr == nullptr)
+			{
+				return {};
+			}
+			
 			CurrentStructType = StructProperty->Struct;  
 			if(CurrentStructType == nullptr)  
 			{          
-				return FAruPropertyContext{};  
+				return {};  
 			}
 
 			if(CurrentStructType == FInstancedStruct::StaticStruct())
@@ -364,25 +372,25 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 				const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(CurrentStructPtr);  
 				if(InstancedStructPtr == nullptr || !InstancedStructPtr->IsValid())  
 				{             
-					return FAruPropertyContext{};  
+					return {};  
 				}
 				
 				CurrentStructType = InstancedStructPtr->GetScriptStruct();
 				if(CurrentStructType == nullptr)
 				{
-					return FAruPropertyContext{};
+					return {};
 				}
 
 				CurrentStructPtr = InstancedStructPtr->GetMemory();  
 				if(CurrentStructPtr == nullptr)  
 				{             
-					return FAruPropertyContext{};  
+					return {};  
 				}
 			}
 		}
 	}
 	
-	return FAruPropertyContext{const_cast<void*>(CurrentStructPtr), const_cast<FProperty*>(CurrentProperty)};
+	return FAruPropertyContext{const_cast<FProperty*>(CurrentProperty), const_cast<void*>(CurrentStructPtr)};
 }
 
 #undef LOCTEXT_NAMESPACE 
