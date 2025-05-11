@@ -40,9 +40,9 @@ protected:
 	template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
 	TOptional<const void*> GetNewValueBySourceType(const UStruct* TypeToCheck = nullptr) const
 	{
-		auto IsCompatibleType = [&TypeToCheck](const FProperty* InProperty, const void* InValue) -> bool
+		auto IsCompatibleType = [&TypeToCheck](const FProperty* NewValueType, const void* NewValue) -> bool
 		{
-			if(!InProperty->IsA<T>())
+			if(!NewValueType->IsA<T>())
 			{
 				return false;
 			}
@@ -52,9 +52,9 @@ protected:
 				return true;
 			}
 
-			if(const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(InProperty))
+			if(const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(NewValueType))
 			{
-				const UObject* Object = ObjectProperty->GetObjectPropertyValue(InValue);
+				const UObject* Object = ObjectProperty->GetObjectPropertyValue(NewValue);
 				if(Object == nullptr)
 				{
 					// We might want to clear the property value.
@@ -71,7 +71,7 @@ protected:
 				return ObjectClass->IsChildOf(TypeToCheck);
 			}
 			
-			if(const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty))
+			if(const FStructProperty* StructProperty = CastField<FStructProperty>(NewValueType))
 			{
 				const UScriptStruct* ScriptStruct = StructProperty->Struct;
 				if(ScriptStruct == nullptr)
@@ -84,7 +84,7 @@ protected:
 					return ScriptStruct == FInstancedStruct::StaticStruct();
 				}
 
-				const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(InValue);  
+				const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(NewValue);  
 				if(InstancedStructPtr == nullptr)  
 				{             
 					return false;  
