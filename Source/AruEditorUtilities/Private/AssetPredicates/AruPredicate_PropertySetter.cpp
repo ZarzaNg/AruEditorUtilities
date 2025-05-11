@@ -126,6 +126,59 @@ void FAruPredicate_SetNameValue::Execute(const FProperty* InProperty, void* InVa
 	NameProperty->CopyCompleteValue(InValue, PendingValue);
 }
 
+void FAruPredicate_SetEnumValue::Execute(const FProperty* InProperty, void* InValue) const
+{
+	if(InProperty == nullptr || InValue == nullptr)
+	{
+		return;
+	}
+
+	const FEnumProperty* EnumProperty = CastField<FEnumProperty>(InProperty);
+	if(EnumProperty == nullptr)
+	{
+		return;
+	}
+
+	const UEnum* EnumType = EnumProperty->GetEnum();
+	if(EnumType == nullptr)
+	{
+		return;
+	}
+
+	const FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
+	if(UnderlyingProperty == nullptr)
+	{
+		return;
+	}
+
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>();
+	if(!OptionalValue.IsSet())
+	{
+		return;
+	}
+
+	const void* PendingValue = OptionalValue.GetValue();
+	if(PendingValue == nullptr)
+	{
+		return;
+	}
+
+	const FString* StringValue = static_cast<const FString*>(PendingValue);
+	if(StringValue == nullptr)
+	{
+		return;
+	}
+
+	const int64 PendingEnumValue = EnumType->GetValueByNameString(*StringValue);
+	if(PendingEnumValue == INDEX_NONE)
+	{
+		// TODO: Add warning.
+		return;
+	}
+
+	UnderlyingProperty->SetIntPropertyValue(InValue, PendingEnumValue);
+}
+
 void FAruPredicate_SetObjectValue::Execute(const FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)

@@ -288,6 +288,20 @@ public:
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
+USTRUCT(BlueprintType, DisplayName="Set Enum Value")
+struct FAruPredicate_SetEnumValue : public FAruPredicate_PropertySetter
+{
+	GENERATED_BODY()
+protected:
+
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
+	FString NewValue{};
+public:
+	virtual ~FAruPredicate_SetEnumValue() override{}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+};
+
 USTRUCT(BlueprintType, DisplayName="Set Struct Value")
 struct FAruPredicate_SetStructValue : public FAruPredicate_PropertySetter
 {
