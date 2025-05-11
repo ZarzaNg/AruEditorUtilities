@@ -14,7 +14,7 @@ enum class EAruValueSource : uint8
 	DataTable	UMETA(DisplayName="From DataTable")
 };
 
-USTRUCT()
+USTRUCT(meta=(Hidden))
 struct FAruPredicate_PropertySetter : public FAruPredicate
 {
 	GENERATED_BODY()
