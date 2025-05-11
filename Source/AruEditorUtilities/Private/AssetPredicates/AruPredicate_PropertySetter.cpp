@@ -234,8 +234,20 @@ void FAruPredicate_SetStructValue::Execute(const FProperty* InProperty, void* In
 	{
 		return;
 	}
+
+	const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(PendingValue);
+	if(InstancedStructPtr == nullptr)
+	{
+		return;
+	}
+
+	const void* PendingStructValue = InstancedStructPtr->GetMemory();
+	if(PendingStructValue == nullptr)
+	{
+		return;
+	}
 	
-	StructProperty->CopyCompleteValue(InValue, PendingValue);
+	StructProperty->CopyCompleteValue(InValue, PendingStructValue);
 }
 
 void FAruPredicate_SetInstancedStructValue::Execute(const FProperty* InProperty, void* InValue) const

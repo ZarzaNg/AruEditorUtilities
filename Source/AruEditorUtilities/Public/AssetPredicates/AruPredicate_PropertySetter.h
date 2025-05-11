@@ -40,9 +40,9 @@ protected:
 	template<typename T>
 	TOptional<const void*> GetNewValueBySourceType(const UStruct* TypeToCheck = nullptr) const
 	{
-		auto TypeChecker = [&TypeToCheck](const FProperty* InProperty, const void* InValue) -> bool
+		auto IsCompatibleType = [&TypeToCheck](const FProperty* InProperty, const void* InValue) -> bool
 		{
-			if(CastField<T>(InProperty) == nullptr)
+			if(!InProperty->IsA<T>())
 			{
 				return false;
 			}
@@ -101,38 +101,6 @@ protected:
 
 			return false;
 		};
-
-		auto PointerWrapper = [&TypeToCheck](const FProperty* InProperty, const void* InValue) -> const void*
-		{
-			if(const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty))
-			{
-				if(TypeToCheck == FInstancedStruct::StaticStruct())
-				{
-					return InValue;
-				}
-				
-				const UScriptStruct* ScriptStruct = StructProperty->Struct;
-				if(ScriptStruct == nullptr)
-				{
-					return InValue;
-				}
-
-				if(ScriptStruct != FInstancedStruct::StaticStruct())
-				{
-					return InValue;
-				}
-
-				const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(InValue);  
-				if(InstancedStructPtr == nullptr)  
-				{             
-					return InValue;  
-				}
-
-				return InstancedStructPtr->GetMemory();
-			}
-
-			return InValue;
-		};
 		
 		switch (ValueSource)
 		{
@@ -146,13 +114,13 @@ protected:
 				}
 				
 				const void* PropertyValue = Property->ContainerPtrToValuePtr<void>(this);
-				if(!TypeChecker(Property, PropertyValue))
+				if(!IsCompatibleType(Property, PropertyValue))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
 				}
 				
-				return TOptional<const void*>(PointerWrapper(Property, PropertyValue));
+				return TOptional<const void*>{PropertyValue};
 			}
 		case EAruValueSource::Object:
 			{
@@ -180,13 +148,13 @@ protected:
 					return {};
 				}
 
-				if(!TypeChecker(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
+				if(!IsCompatibleType(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
 				}
 
-				return TOptional<const void*>(PointerWrapper(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()));
+				return TOptional<const void*>{PropertyContext.ValuePtr.GetValue()};
 			}
 		case EAruValueSource::DataTable:
 			{
@@ -222,13 +190,13 @@ protected:
 					return {};
 				}
 
-				if(!TypeChecker(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
+				if(!IsCompatibleType(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
 				}
 
-				return TOptional<const void*>(PointerWrapper(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()));
+				return TOptional<const void*>{PropertyContext.ValuePtr.GetValue()};
 			}
 		}
 
