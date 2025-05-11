@@ -1,6 +1,6 @@
 ﻿#include "AssetFilters/AruFilter_ByType.h"
 
-bool FAruFilter_ByObjectType::IsConditionMet(FProperty* InProperty, void* InValue) const
+bool FAruFilter_ByObjectType::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
 	if(ObjectType == nullptr)
 	{
@@ -27,7 +27,7 @@ bool FAruFilter_ByObjectType::IsConditionMet(FProperty* InProperty, void* InValu
 	return (ClassType == ObjectType) ^ bInverseCondition;
 }
 
-bool FAruFilter_ByStructType::IsConditionMet(FProperty* InProperty, void* InValue) const
+bool FAruFilter_ByStructType::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
 	if(StructType == nullptr)
 	{
@@ -56,7 +56,7 @@ bool FAruFilter_ByStructType::IsConditionMet(FProperty* InProperty, void* InValu
 		return (InStructType == StructType) ^ bInverseCondition;
 	}
 
-	FInstancedStruct* InstancedStructPtr = static_cast<FInstancedStruct*>(InValue);  
+	const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(InValue);  
 	if(InstancedStructPtr == nullptr || !InstancedStructPtr->IsValid())  
 	{             
 		return bInverseCondition;  

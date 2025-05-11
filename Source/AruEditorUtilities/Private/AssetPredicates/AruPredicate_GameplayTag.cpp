@@ -1,6 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_GameplayTag.h"
 
-void FAruPredicate_SetGameplayTag::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetGameplayTag::Execute(const FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -31,7 +31,7 @@ void FAruPredicate_SetGameplayTag::Execute(FProperty* InProperty, void* InValue)
 	}
 }
 
-void FAruPredicate_SetGameplayTagContainer::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetGameplayTagContainer::Execute(const FProperty* InProperty, void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{

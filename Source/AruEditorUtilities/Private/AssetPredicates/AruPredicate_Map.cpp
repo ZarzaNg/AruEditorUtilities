@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_Map.h"
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
-void FAruPredicate_AddMapPair::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_AddMapPair::Execute(const FProperty* InProperty, void* InValue) const
 {
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
 	if(MapProperty == nullptr)
@@ -82,7 +82,7 @@ void FAruPredicate_AddMapPair::Execute(FProperty* InProperty, void* InValue) con
 	}
 }
 
-void FAruPredicate_RemoveMapPair::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_RemoveMapPair::Execute(const FProperty* InProperty, void* InValue) const
 {
 	if(KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
 	{
@@ -95,7 +95,7 @@ void FAruPredicate_RemoveMapPair::Execute(FProperty* InProperty, void* InValue) 
 		return;
 	}
 
-	auto ShouldRemove = [&](void* KeyPtr, void* ValuePtr)
+	auto ShouldRemove = [&](const void* KeyPtr, const void* ValuePtr)
 	{
 		for(const TInstancedStruct<FAruFilter>& FilterStruct : KeyFilters)
 		{
@@ -153,7 +153,7 @@ void FAruPredicate_RemoveMapPair::Execute(FProperty* InProperty, void* InValue) 
 	}
 }
 
-void FAruPredicate_ModifyMapPair::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InValue) const
 {
 	if(KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
 	{
@@ -173,7 +173,7 @@ void FAruPredicate_ModifyMapPair::Execute(FProperty* InProperty, void* InValue) 
 		return;
 	}
 
-	auto ShouldModify = [&](void* KeyPtr, void* ValuePtr)
+	auto ShouldModify = [&](const void* KeyPtr, const void* ValuePtr)
 	{
 		for(const TInstancedStruct<FAruFilter>& FilterStruct : KeyFilters)
 		{

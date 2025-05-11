@@ -8,7 +8,7 @@ struct FAruPredicate_AddMapPair : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_AddMapPair() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruPredicate>> PredicatesForKey;
@@ -23,7 +23,7 @@ struct FAruPredicate_RemoveMapPair : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_RemoveMapPair() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruFilter>> KeyFilters;
@@ -38,7 +38,7 @@ struct FAruPredicate_ModifyMapPair : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_ModifyMapPair() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruFilter>> KeyFilters;

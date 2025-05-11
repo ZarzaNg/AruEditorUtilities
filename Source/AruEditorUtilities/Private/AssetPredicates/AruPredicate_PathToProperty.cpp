@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_PathToProperty.h"
 #include "AruFunctionLibrary.h"
 
-void FAruPredicate_PathToProperty::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_PathToProperty::Execute(const FProperty* InProperty, void* InValue) const
 {
 	if(PathToProperty.IsEmpty() || InValue == nullptr || !Predicate.IsValid())
 	{

@@ -1,6 +1,6 @@
 ﻿#include "AssetFilters/AruFilter_ByValue.h"
 
-bool FAruFilter_ByNumericValue::IsConditionMet(FProperty* InProperty, void* InValue) const
+bool FAruFilter_ByNumericValue::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -49,7 +49,7 @@ bool FAruFilter_ByNumericValue::IsConditionMet(FProperty* InProperty, void* InVa
 	return bInverseCondition;
 }
 
-bool FAruFilter_ByBoolean::IsConditionMet(FProperty* InProperty, void* InValue) const
+bool FAruFilter_ByBoolean::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -78,9 +78,9 @@ bool FAruFilter_ByBoolean::IsConditionMet(FProperty* InProperty, void* InValue) 
 	return CompareValue(BooleanProperty->GetPropertyValue(InValue)) ^ bInverseCondition;
 }
 
-bool FAruFilter_ByObject::IsConditionMet(FProperty* InProperty, void* InValue) const
+bool FAruFilter_ByObject::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
-	FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty);
+	const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty);
 	if(ObjectProperty == nullptr)
 	{
 		return bInverseCondition;
@@ -91,14 +91,14 @@ bool FAruFilter_ByObject::IsConditionMet(FProperty* InProperty, void* InValue) c
 	return (ObjectPtr == ConditionValue) ^ bInverseCondition;
 }
 
-bool FAruFilter_ByGameplayTagContainer::IsConditionMet(FProperty* InProperty, void* InValue) const
+bool FAruFilter_ByGameplayTagContainer::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
 	if(InProperty == nullptr || InValue == nullptr || TagQuery.IsEmpty())
 	{
 		return bInverseCondition;
 	}
 
-	FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
+	const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
 	if(StructProperty == nullptr)
 	{
 		return bInverseCondition;
@@ -112,7 +112,7 @@ bool FAruFilter_ByGameplayTagContainer::IsConditionMet(FProperty* InProperty, vo
 
 	if(StructType == FGameplayTag::StaticStruct())
 	{
-		FGameplayTag* GameplayTagPtr = static_cast<FGameplayTag*>(InValue);
+		const FGameplayTag* GameplayTagPtr = static_cast<const FGameplayTag*>(InValue);
 		if(GameplayTagPtr == nullptr)
 		{
 			return bInverseCondition;
@@ -123,7 +123,7 @@ bool FAruFilter_ByGameplayTagContainer::IsConditionMet(FProperty* InProperty, vo
 
 	if(StructType == FGameplayTagContainer::StaticStruct())
 	{
-		FGameplayTagContainer* GameplayTagsPtr = static_cast<FGameplayTagContainer*>(InValue);
+		const FGameplayTagContainer* GameplayTagsPtr = static_cast<const FGameplayTagContainer*>(InValue);
 		if(GameplayTagsPtr == nullptr)
 		{
 			return bInverseCondition;

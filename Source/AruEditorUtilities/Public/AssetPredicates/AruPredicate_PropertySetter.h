@@ -239,7 +239,7 @@ protected:
 	bool NewValue = false;
 public:
 	virtual ~FAruPredicate_SetBoolValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Float Value")
@@ -251,7 +251,7 @@ protected:
 	float NewValue = 0.f;
 public:
 	virtual ~FAruPredicate_SetFloatValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Integer Value")
@@ -263,7 +263,7 @@ protected:
 	int64 NewValue = 0;
 public:
 	virtual ~FAruPredicate_SetIntegerValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Name Value")
@@ -275,7 +275,7 @@ protected:
 	FName NewValue = FName{};
 public:
 	virtual ~FAruPredicate_SetNameValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Struct Value")
@@ -287,7 +287,7 @@ protected:
 	FInstancedStruct NewValue;
 public:
 	virtual ~FAruPredicate_SetStructValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Object Value")
@@ -299,7 +299,7 @@ protected:
 	TObjectPtr<UObject> NewValue = nullptr;
 public:
 	virtual ~FAruPredicate_SetObjectValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Instanced Struct Value")
@@ -311,7 +311,7 @@ protected:
 	FInstancedStruct NewValue;
 public:
 	virtual ~FAruPredicate_SetInstancedStructValue() override {};
-	virtual void Execute(FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
 #undef LOCTEXT_NAMESPACE

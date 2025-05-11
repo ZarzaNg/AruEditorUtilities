@@ -8,7 +8,7 @@ struct FAruFilter_ByName : public FAruFilter
 	GENERATED_BODY()
 public:
 	virtual ~FAruFilter_ByName() override {};
-	virtual bool IsConditionMet(FProperty* InProperty, void* InValue) const override;
+	virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
 	FString PropertyName{"None"};

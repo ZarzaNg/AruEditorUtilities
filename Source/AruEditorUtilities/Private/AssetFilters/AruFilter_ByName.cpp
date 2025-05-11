@@ -1,6 +1,6 @@
 ﻿#include "AssetFilters/AruFilter_ByName.h"
 
-bool FAruFilter_ByName::IsConditionMet(FProperty* InProperty, void* InValue) const
+bool FAruFilter_ByName::IsConditionMet(const FProperty* InProperty, const void* InValue) const
 {
 	if(InProperty == nullptr)
 	{

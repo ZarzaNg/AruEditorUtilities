@@ -1,6 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_Array.h"
 
-void FAruPredicate_AddArrayValue::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_AddArrayValue::Execute(const FProperty* InProperty, void* InValue) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -34,7 +34,7 @@ void FAruPredicate_AddArrayValue::Execute(FProperty* InProperty, void* InValue) 
 	}
 }
 
-void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_RemoveArrayValue::Execute(const FProperty* InProperty, void* InValue) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -47,7 +47,7 @@ void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InValu
 		return;
 	}
 
-	auto ShouldRemove = [&](void* ValuePtr)
+	auto ShouldRemove = [&](const void* ValuePtr)
 	{
 		for(const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
 		{
@@ -81,7 +81,7 @@ void FAruPredicate_RemoveArrayValue::Execute(FProperty* InProperty, void* InValu
 	}
 }
 
-void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_ModifyArrayValue::Execute(const FProperty* InProperty, void* InValue) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -94,7 +94,7 @@ void FAruPredicate_ModifyArrayValue::Execute(FProperty* InProperty, void* InValu
 		return;
 	}
 
-	auto ShouldModify = [&](void* ValuePtr)
+	auto ShouldModify = [&](const void* ValuePtr)
 	{
 		for(const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
 		{

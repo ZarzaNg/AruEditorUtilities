@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_Set.h"
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
-void FAruPredicate_AddSetElement::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_AddSetElement::Execute(const FProperty* InProperty, void* InValue) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if(SetProperty == nullptr)
@@ -67,7 +67,7 @@ void FAruPredicate_AddSetElement::Execute(FProperty* InProperty, void* InValue) 
 	ElementProperty->CopyCompleteValue(NewElementPtr, PendingElementPtr);
 }
 
-void FAruPredicate_RemoveSetValue::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_RemoveSetValue::Execute(const FProperty* InProperty, void* InValue) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if(SetProperty == nullptr)
@@ -80,7 +80,7 @@ void FAruPredicate_RemoveSetValue::Execute(FProperty* InProperty, void* InValue)
 		return;
 	}
 	
-	auto ShouldRemove = [&](void* ValuePtr)
+	auto ShouldRemove = [&](const void* ValuePtr)
 	{
 		for(const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
 		{
@@ -114,7 +114,7 @@ void FAruPredicate_RemoveSetValue::Execute(FProperty* InProperty, void* InValue)
 	}
 }
 
-void FAruPredicate_ModifySetValue::Execute(FProperty* InProperty, void* InValue) const
+void FAruPredicate_ModifySetValue::Execute(const FProperty* InProperty, void* InValue) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if(SetProperty == nullptr)
@@ -133,7 +133,7 @@ void FAruPredicate_ModifySetValue::Execute(FProperty* InProperty, void* InValue)
 		return;
 	}
 	
-	auto ShouldModify = [&](void* ValuePtr)
+	auto ShouldModify = [&](const void* ValuePtr)
 	{
 		for(const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
 		{
