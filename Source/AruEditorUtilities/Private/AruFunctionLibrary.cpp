@@ -7,13 +7,13 @@
 
 #define LOCTEXT_NAMESPACE "AruEditorUtilities"
 
-void UAruFunctionLibrary::ProcessSelectedAssets(const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth)
+void UAruFunctionLibrary::ProcessSelectedAssets(const TArray<FAruActionDefinition>& ActionDefinitions, const int32 MaxDepth)
 {
 	const TArray<UObject*>&& SelectedObjects = UEditorUtilityLibrary::GetSelectedAssets();
 	ProcessAssets(SelectedObjects, ActionDefinitions, MaxDepth);
 }
 
-void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth)
+void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& ActionDefinitions, const int32 MaxDepth)
 {
 	FScopedSlowTask Progress(Objects.Num(), LOCTEXT("Processing...", "Processing..."));
 	Progress.MakeDialog();
