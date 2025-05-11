@@ -11,7 +11,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	FGameplayTag NewValue;
 public:
-	virtual ~FAruPredicate_SetGameplayTag() override {};
+	virtual ~FAruPredicate_SetGameplayTag() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
@@ -23,6 +24,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	FGameplayTagContainer NewValue;
 public:
-	virtual ~FAruPredicate_SetGameplayTagContainer() override {};
+	virtual ~FAruPredicate_SetGameplayTagContainer() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };

@@ -17,7 +17,7 @@ void FAruPredicate_SetBoolValue::Execute(const FProperty* InProperty, void* InVa
 		return;
 	}
 
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetBoolValue>();
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FBoolProperty>();
 	if(!OptionalValue.IsSet())
 	{
 		return;
@@ -50,7 +50,7 @@ void FAruPredicate_SetFloatValue::Execute(const FProperty* InProperty, void* InV
 		return;
 	}
 	
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetFloatValue>();
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FNumericProperty>();
 	if(!OptionalValue.IsSet())
 	{
 		return;
@@ -83,7 +83,7 @@ void FAruPredicate_SetIntegerValue::Execute(const FProperty* InProperty, void* I
 		return;
 	}
 	
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetIntegerValue>();
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FNumericProperty>();
 	if(!OptionalValue.IsSet())
 	{
 		return;
@@ -111,7 +111,7 @@ void FAruPredicate_SetNameValue::Execute(const FProperty* InProperty, void* InVa
 		return;
 	}
 	
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetNameValue>();
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FNameProperty>();
 	if(!OptionalValue.IsSet())
 	{
 		return;
@@ -133,7 +133,7 @@ void FAruPredicate_SetObjectValue::Execute(const FProperty* InProperty, void* In
 		return;
 	}
 
-	const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty);
+	const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(InProperty);
 	if(ObjectProperty == nullptr)
 	{
 		return;
@@ -145,7 +145,7 @@ void FAruPredicate_SetObjectValue::Execute(const FProperty* InProperty, void* In
 		return;
 	}
 
-	if(auto* PendingValue = GetNewValueBySourceType<FAruPredicate_SetObjectValue>(ClassType).GetPtrOrNull())
+	if(auto* PendingValue = GetNewValueBySourceType<FObjectPropertyBase>(ClassType).GetPtrOrNull())
 	{
 		ObjectProperty->CopyCompleteValue(InValue, *PendingValue);
 	}
@@ -170,7 +170,7 @@ void FAruPredicate_SetStructValue::Execute(const FProperty* InProperty, void* In
 		return;  
 	}
 
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetStructValue>(SourceStructType);
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(SourceStructType);
 	if(!OptionalValue.IsSet())
 	{
 		return;
@@ -210,7 +210,7 @@ void FAruPredicate_SetInstancedStructValue::Execute(const FProperty* InProperty,
 		return;  
 	}
 	
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FAruPredicate_SetInstancedStructValue>(StructType);
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(StructType);
 	if(!OptionalValue.IsSet())
 	{
 		return;

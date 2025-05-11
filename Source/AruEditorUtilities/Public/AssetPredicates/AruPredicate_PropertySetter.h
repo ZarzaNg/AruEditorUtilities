@@ -20,6 +20,7 @@ struct FAruPredicate_PropertySetter : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_PropertySetter() override {};
+	virtual const UScriptStruct* GetScriptedStruct() const {return StaticStruct();}
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(DisplayPriority = 0))
 	EAruValueSource ValueSource = EAruValueSource::Value;
@@ -37,11 +38,16 @@ protected:
 	TObjectPtr<UDataTable> DataTable = nullptr;
 
 	template<typename T>
-	TOptional<const void*> GetNewValueBySourceType(const UStruct* TypeToMatch = nullptr) const
+	TOptional<const void*> GetNewValueBySourceType(const UStruct* TypeToCheck = nullptr) const
 	{
-		auto TypeMatch = [&TypeToMatch](const FProperty* InProperty, const void* InValue) -> bool
+		auto TypeChecker = [&TypeToCheck](const FProperty* InProperty, const void* InValue) -> bool
 		{
-			if(TypeToMatch == nullptr)
+			if(CastField<T>(InProperty) == nullptr)
+			{
+				return false;
+			}
+			
+			if(TypeToCheck == nullptr)
 			{
 				return true;
 			}
@@ -62,7 +68,7 @@ protected:
 					return false;
 				}
 
-				return ObjectClass->IsChildOf(TypeToMatch);
+				return ObjectClass->IsChildOf(TypeToCheck);
 			}
 			
 			if(const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty))
@@ -73,7 +79,7 @@ protected:
 					return false;
 				}
 
-				if(TypeToMatch == FInstancedStruct::StaticStruct())
+				if(TypeToCheck == FInstancedStruct::StaticStruct())
 				{
 					return ScriptStruct == FInstancedStruct::StaticStruct();
 				}
@@ -90,17 +96,17 @@ protected:
 					return false;
 				}
 				
-				return InnerStruct->IsChildOf(TypeToMatch);
+				return InnerStruct->IsChildOf(TypeToCheck);
 			}
 
 			return false;
 		};
 
-		auto PointerWrapper = [&TypeToMatch](const FProperty* InProperty, const void* InValue) -> const void*
+		auto PointerWrapper = [&TypeToCheck](const FProperty* InProperty, const void* InValue) -> const void*
 		{
 			if(const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty))
 			{
-				if(TypeToMatch == FInstancedStruct::StaticStruct())
+				if(TypeToCheck == FInstancedStruct::StaticStruct())
 				{
 					return InValue;
 				}
@@ -133,14 +139,14 @@ protected:
 		case EAruValueSource::Value:
 			{
 				static FName ValueName{"NewValue"};
-				const FProperty* Property = PropertyAccessUtil::FindPropertyByName(ValueName, T::StaticStruct());
+				const FProperty* Property = PropertyAccessUtil::FindPropertyByName(ValueName, GetScriptedStruct());
 				if(!ensureMsgf(Property != nullptr, TEXT("Can't find NewValue property in derived struct.")))
 				{
 					return {};
 				}
 				
 				const void* PropertyValue = Property->ContainerPtrToValuePtr<void>(this);
-				if(!TypeMatch(Property, PropertyValue))
+				if(!TypeChecker(Property, PropertyValue))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
@@ -174,7 +180,7 @@ protected:
 					return {};
 				}
 
-				if(!TypeMatch(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
+				if(!TypeChecker(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
@@ -216,7 +222,7 @@ protected:
 					return {};
 				}
 
-				if(!TypeMatch(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
+				if(!TypeChecker(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
 					return {};
@@ -238,7 +244,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	bool NewValue = false;
 public:
-	virtual ~FAruPredicate_SetBoolValue() override {};
+	virtual ~FAruPredicate_SetBoolValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
@@ -250,7 +257,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	float NewValue = 0.f;
 public:
-	virtual ~FAruPredicate_SetFloatValue() override {};
+	virtual ~FAruPredicate_SetFloatValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
@@ -262,7 +270,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	int64 NewValue = 0;
 public:
-	virtual ~FAruPredicate_SetIntegerValue() override {};
+	virtual ~FAruPredicate_SetIntegerValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
@@ -274,7 +283,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	FName NewValue = FName{};
 public:
-	virtual ~FAruPredicate_SetNameValue() override {};
+	virtual ~FAruPredicate_SetNameValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
@@ -286,7 +296,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	FInstancedStruct NewValue;
 public:
-	virtual ~FAruPredicate_SetStructValue() override {};
+	virtual ~FAruPredicate_SetStructValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
@@ -298,7 +309,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	TObjectPtr<UObject> NewValue = nullptr;
 public:
-	virtual ~FAruPredicate_SetObjectValue() override {};
+	virtual ~FAruPredicate_SetObjectValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
@@ -310,7 +322,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	FInstancedStruct NewValue;
 public:
-	virtual ~FAruPredicate_SetInstancedStructValue() override {};
+	virtual ~FAruPredicate_SetInstancedStructValue() override {}
+	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
 	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
 };
 
