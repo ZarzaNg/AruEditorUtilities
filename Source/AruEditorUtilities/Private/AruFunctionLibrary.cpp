@@ -21,14 +21,22 @@ void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const T
 	{
 		Progress.EnterProgressFrame(1.f);
 		
-		for(TFieldIterator<FProperty> It{Object->GetClass()}; It; ++It)  
+		UObject* ObjectToProcess = Object;
+		UClass* ClassToProcess = Object->GetClass();
+		if(UBlueprint* BlueprintAsset = Cast<UBlueprint>(Object))
+		{
+			ClassToProcess = BlueprintAsset->GeneratedClass;
+			ObjectToProcess = ClassToProcess->GetDefaultObject();
+		}
+		
+		for(TFieldIterator<FProperty> It{ClassToProcess}; It; ++It)  
 		{  
 			FProperty* Property = *It;  
 			if(Property == nullptr)  
 			{       
 				continue;
 			}    
-			void* ValuePtr = Property->ContainerPtrToValuePtr<void>(Object);  
+			void* ValuePtr = Property->ContainerPtrToValuePtr<void>(ObjectToProcess);  
 			if(ValuePtr == nullptr)  
 			{       
 				continue;
