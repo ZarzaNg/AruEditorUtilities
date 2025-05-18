@@ -1,4 +1,5 @@
-# PropFlow Catalyst
+![Icon128](Images/Icon128.gif)
+# PropFlow Catalyst for Unreal Engine
 ![Unreal Engine](https://img.shields.io/badge/UnrealEngine-5-blue?logo=unrealengine)  
 ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -61,3 +62,40 @@ PropFlow Catalyst is a Unreal Engine plugin that facilitates the bulk configurat
 ⚠️ **Note**:
 - Always verify filter conditions before execution, a condition like "PropertyName=MyFloat" will include all the properties named "MyFloat" in different scopes.
 - Use version control diff tools to inspect modifications.
+
+## 🎯Interfaces
+### 🔍 Custom Filters
+Create a custom filter by inheriting FAruFilter and implementing the condition check logic:
+```C++
+class FMyCustomFilter : public FAruFilter
+{
+public:
+    virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue) const override
+    {
+        // Your custom condition check logic here
+        // InProperty: Metadata of the current property
+        // InValue: Memory address of the property value
+        
+        // Example: Check if property name contains "Health"
+        return InProperty->GetName().Contains(TEXT("Health"));
+    }
+};
+```
+
+### ⚙️ Custom Predicates (Operations)
+Create a custom operation by inheriting FAruPredicate and implementing the execution logic:
+```C++
+class FMyCustomAction : public FAruPredicate
+{
+public:
+    virtual void Execute(const FProperty* InProperty, void* InValue) const override
+    {
+        // Example: Double integer properties
+        if (FIntProperty* IntProp = CastField<FIntProperty>(InProperty))
+        {
+            int32 Value = IntProp->GetPropertyValue(InValue);
+            IntProp->SetPropertyValue(InValue, Value * 2);
+        }
+    }
+};
+```
