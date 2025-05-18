@@ -1,5 +1,5 @@
-![Icon128](Images/Icon128.gif)
-# PropFlow Catalyst for Unreal Engine
+
+# PropFlow Catalyst for ![Icon128](Images/Icon128.png) 
 ![Unreal Engine](https://img.shields.io/badge/UnrealEngine-5-blue?logo=unrealengine)  
 ![License](https://img.shields.io/badge/License-MIT-green)
 
