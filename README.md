@@ -1,5 +1,5 @@
 # PropFlow Catalyst for Unreal Engine
-![Unreal Engine](https://img.shields.io/badge/UnrealEngine-5-blue?logo=unrealengine)  ![License](https://img.shields.io/badge/License-MIT-green)
+![Unreal Engine](https://img.shields.io/badge/UnrealEngine-5-blue?logo=unrealengine) ![License](https://img.shields.io/badge/License-MIT-green) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ZarzaNg/AruEditorUtilities)
 
 PropFlow Catalyst is a Unreal Engine plugin that facilitates the bulk configuration of assets based on the assetisation of the configuration process.
 
