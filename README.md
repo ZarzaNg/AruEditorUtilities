@@ -52,7 +52,13 @@ PropFlow Catalyst is a Unreal Engine plugin that facilitates the bulk configurat
      - Choose your prebuilt data asset from file picker  
      - System will automatically validate and execute the workflow
 ![ModularSettings](Images/ModularSettings.gif)
-    
+
+3. **Modular Configuration**
+   - When managing objects with numerous settings (e.g. 50+ parameters), extract frequently-tuned parameters into DataAsset and configure them via:
+      - **DataTables** (for CSV-driven bulk updates)
+      - **Parameter Inheritance** (reference values from master assets)
+![GetValueFromDataTable](Images/GetValueFromDataTable.gif)
+
 ▶️ **Recommendation**  
 - Start with Quick Operation for single-batch tasks  
 - Use DataAsset presets for recurring complex workflows
