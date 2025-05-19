@@ -7,13 +7,13 @@
 
 #define LOCTEXT_NAMESPACE "AruEditorUtilities"
 
-void UAruFunctionLibrary::ProcessSelectedAssets(const TArray<FAruActionDefinition>& ActionDefinitions, const int32 MaxDepth)
+void UAruFunctionLibrary::ProcessSelectedAssets(const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs)
 {
 	const TArray<UObject*>&& SelectedObjects = UEditorUtilityLibrary::GetSelectedAssets();
-	ProcessAssets(SelectedObjects, ActionDefinitions, MaxDepth);
+	ProcessAssets(SelectedObjects, Actions, Configs);
 }
 
-void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& ActionDefinitions, const int32 MaxDepth)
+void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs)
 {
 	FScopedSlowTask Progress(Objects.Num(), LOCTEXT("Processing...", "Processing..."));
 	Progress.MakeDialog();
@@ -42,7 +42,7 @@ void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const T
 				continue;
 			}
 			
-			ProcessContainerValues(Property, ValuePtr, ActionDefinitions, MaxDepth);  
+			ProcessContainerValues(Property, ValuePtr, {Actions, Configs.Parameters, Configs.MaxSearchDepth});  
 		}
 
 		Object->Modify();
@@ -52,10 +52,9 @@ void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const T
 void UAruFunctionLibrary::ProcessContainerValues(
 	FProperty* PropertyPtr,
 	void* ValuePtr,
-	const TArray<FAruActionDefinition>& Actions,
-	const uint8 RemainTimes)
+	const FAruProcessingParameters& InParameters)
 {
-	if(RemainTimes <= 0)
+	if(InParameters.RemainTime <= 0)
 	{
 		return;
 	}
@@ -65,111 +64,112 @@ void UAruFunctionLibrary::ProcessContainerValues(
     	return;  
     }
 
-	for(const auto& Action : Actions)
-	{
-		Action.Invoke(PropertyPtr, ValuePtr);
-	}
-    
     if(FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(PropertyPtr))  
-    {       
-		UObject* NativeObject = ObjectProperty->GetObjectPropertyValue(ValuePtr);  
-		if(NativeObject == nullptr)  
-		{          
-			return;  
-		}
-
-    	UClass* NativeClass = NativeObject->GetClass();
-    	if(NativeClass == nullptr)
+    {
+    	[&]
     	{
-    		return;
-    	}
+    		UObject* NativeObject = ObjectProperty->GetObjectPropertyValue(ValuePtr);  
+    		if(NativeObject == nullptr)  
+    		{          
+    			return;  
+    		}
 
-    	if(UBlueprint* BlueprintAsset = Cast<UBlueprint>(NativeObject))
-    	{
-    		NativeClass = BlueprintAsset->GeneratedClass;
-    		NativeObject = NativeClass->GetDefaultObject();
-    	}
+    		UClass* NativeClass = NativeObject->GetClass();
+    		if(NativeClass == nullptr)
+    		{
+    			return;
+    		}
 
-		for(TFieldIterator<FProperty> It{NativeClass}; It; ++It)  
-		{          
-			FProperty* Property = *It;  
-			if(Property == nullptr)  
-			{             
-				continue;  
-			}          
-			void* ObjectValuePtr = Property->ContainerPtrToValuePtr<void>(NativeObject);  
-			if(ValuePtr == nullptr)  
-			{             
-				continue;  
-			}          
-			ProcessContainerValues(Property, ObjectValuePtr, Actions, RemainTimes - 1);  
-		}    
+    		if(UBlueprint* BlueprintAsset = Cast<UBlueprint>(NativeObject))
+    		{
+    			NativeClass = BlueprintAsset->GeneratedClass;
+    			NativeObject = NativeClass->GetDefaultObject();
+    		}
+
+    		for(TFieldIterator<FProperty> It{NativeClass}; It; ++It)  
+    		{          
+    			FProperty* Property = *It;  
+    			if(Property == nullptr)  
+    			{             
+    				continue;  
+    			}          
+    			void* ObjectValuePtr = Property->ContainerPtrToValuePtr<void>(NativeObject);  
+    			if(ValuePtr == nullptr)  
+    			{             
+    				continue;  
+    			}          
+    			ProcessContainerValues(Property, ObjectValuePtr, InParameters.GetSubsequentParameters());  
+    		}    
+    	}();
 	}
 	else if(FStructProperty* StructProperty = CastField<FStructProperty>(PropertyPtr))  
-	{       
-		const UScriptStruct* StructType = StructProperty->Struct;  
-		if(StructType == nullptr)  
-		{          
-			return;  
-		}
-		
-		if(StructType == FGameplayTag::StaticStruct() 
-			|| StructType == FGameplayTagQuery::StaticStruct()
-			|| StructType == FGameplayTagContainer::StaticStruct())
-		{          
-			return;  
-		}
-		
-		if(StructType == FInstancedStruct::StaticStruct())  
-		{          
-			FInstancedStruct* InstancedStructPtr = static_cast<FInstancedStruct*>(ValuePtr);  
-			if(InstancedStructPtr == nullptr || !InstancedStructPtr->IsValid())  
-			{             
-				return;  
-			}  
-			const UScriptStruct* InstancedStructType = InstancedStructPtr->GetScriptStruct();  
-			if(InstancedStructType == nullptr)  
-			{             
-				return;  
-			}  
-			void* InstancedStructContainer = InstancedStructPtr->GetMutableMemory();  
-			if(InstancedStructContainer == nullptr)  
-			{             
+	{
+		[&]
+		{
+			const UScriptStruct* StructType = StructProperty->Struct;  
+			if(StructType == nullptr)  
+			{          
 				return;  
 			}
+		
+			if(StructType == FGameplayTag::StaticStruct() 
+				|| StructType == FGameplayTagQuery::StaticStruct()
+				|| StructType == FGameplayTagContainer::StaticStruct())
+			{          
+				return;  
+			}
+		
+			if(StructType == FInstancedStruct::StaticStruct())  
+			{          
+				FInstancedStruct* InstancedStructPtr = static_cast<FInstancedStruct*>(ValuePtr);  
+				if(InstancedStructPtr == nullptr || !InstancedStructPtr->IsValid())  
+				{             
+					return;  
+				}  
+				const UScriptStruct* InstancedStructType = InstancedStructPtr->GetScriptStruct();  
+				if(InstancedStructType == nullptr)  
+				{             
+					return;  
+				}  
+				void* InstancedStructContainer = InstancedStructPtr->GetMutableMemory();  
+				if(InstancedStructContainer == nullptr)  
+				{             
+					return;  
+				}
 			
-			for(TFieldIterator<FProperty> It{InstancedStructType}; It; ++It)  
-			{             
-				FProperty* Property = *It;  
-				if(Property == nullptr)  
-				{                
-					continue;  
-				}          
-				void* StructValuePtr = Property->ContainerPtrToValuePtr<void>(InstancedStructContainer);  
-				if(ValuePtr == nullptr)  
-				{                
-					continue;  
-				}          
-				ProcessContainerValues(Property, StructValuePtr, Actions,RemainTimes - 1);      
-			}  
-		}       
-		else  
-		{
-			for(TFieldIterator<FProperty> It{StructType}; It; ++It)  
-			{             
-				FProperty* Property = *It;  
-				if(Property == nullptr)  
-				{                
-					continue;  
-				}          
-				void* StructValuePtr = Property->ContainerPtrToValuePtr<void>(ValuePtr);  
-				if(ValuePtr == nullptr)  
-				{                
-					continue;  
-				}          
-				ProcessContainerValues(Property, StructValuePtr, Actions, RemainTimes - 1);  
+				for(TFieldIterator<FProperty> It{InstancedStructType}; It; ++It)  
+				{             
+					FProperty* Property = *It;  
+					if(Property == nullptr)  
+					{                
+						continue;  
+					}          
+					void* StructValuePtr = Property->ContainerPtrToValuePtr<void>(InstancedStructContainer);  
+					if(ValuePtr == nullptr)  
+					{                
+						continue;  
+					}          
+					ProcessContainerValues(Property, StructValuePtr, InParameters.GetSubsequentParameters());      
+				}  
 			}       
-		}    
+			else  
+			{
+				for(TFieldIterator<FProperty> It{StructType}; It; ++It)  
+				{             
+					FProperty* Property = *It;  
+					if(Property == nullptr)  
+					{                
+						continue;  
+					}          
+					void* StructValuePtr = Property->ContainerPtrToValuePtr<void>(ValuePtr);  
+					if(ValuePtr == nullptr)  
+					{                
+						continue;  
+					}          
+					ProcessContainerValues(Property, StructValuePtr, InParameters.GetSubsequentParameters());  
+				}       
+			}    
+		}();
 	}    
 	else if(FArrayProperty* ArrayProperty = CastField<FArrayProperty>(PropertyPtr))  
 	{       
@@ -177,7 +177,7 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		for(int32 Index = 0; Index < ArrayHelper.Num(); ++Index)  
 		{          
 			void* ItemPtr = ArrayHelper.GetRawPtr(Index);  
-			ProcessContainerValues(ArrayProperty->Inner, ItemPtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(ArrayProperty->Inner, ItemPtr, InParameters.GetSubsequentParameters());  
 		}    
 	}    
 	else if(FMapProperty* MapProperty = CastField<FMapProperty>(PropertyPtr))  
@@ -187,8 +187,8 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		{         
 			void* MapKeyPtr = MapHelper.GetKeyPtr(Index);  
 			void* MapValuePtr = MapHelper.GetValuePtr(Index);  
-			ProcessContainerValues(MapProperty->KeyProp, MapKeyPtr, Actions, RemainTimes - 1);  
-			ProcessContainerValues(MapProperty->ValueProp, MapValuePtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(MapProperty->KeyProp, MapKeyPtr, InParameters.GetSubsequentParameters());  
+			ProcessContainerValues(MapProperty->ValueProp, MapValuePtr, InParameters.GetSubsequentParameters());  
 		}    
 	}    
 	else if(FSetProperty* SetProperty = CastField<FSetProperty>(PropertyPtr))  
@@ -197,10 +197,151 @@ void UAruFunctionLibrary::ProcessContainerValues(
 		for(int32 Index = 0; Index < SetHelper.Num(); ++Index)  
 		{          
 			void* ItemPtr = SetHelper.GetElementPtr(Index);  
-			ProcessContainerValues(SetProperty->ElementProp, ItemPtr, Actions, RemainTimes - 1);  
+			ProcessContainerValues(SetProperty->ElementProp, ItemPtr, InParameters.GetSubsequentParameters());  
 		}    
 	}
+	
+	for(const auto& Action : InParameters.Actions)
+	{
+		Action.Invoke(PropertyPtr, ValuePtr, InParameters.Parameters);
+	}
 }
+
+// template <>
+// TOptional<const void*> UAruFunctionLibrary::GetValueFromPropertyBag<FBoolProperty, void>(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+// {
+// 	if(!PropertyBag.IsValid())
+// 	{
+// 		return {};
+// 	}
+//
+// 	TValueOrError<bool, EPropertyBagResult> SearchResult = PropertyBag.GetValueBool(ValueName);
+// 	if(!SearchResult.HasValue())
+// 	{
+// 		return {};
+// 	}
+//
+// 	return TOptional<const void*>{&SearchResult.GetValue()};
+// }
+//
+// template <>
+// TOptional<const void*> UAruFunctionLibrary::GetValueFromPropertyBag<FUInt64Property, void>(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+// {
+// 	if(!PropertyBag.IsValid())
+// 	{
+// 		return {};
+// 	}
+//
+// 	TValueOrError<uint64, EPropertyBagResult> SearchResult = PropertyBag.GetValueUInt64(ValueName);
+// 	if(!SearchResult.HasValue())
+// 	{
+// 		return {};
+// 	}
+//
+// 	return TOptional<const void*>{&SearchResult.GetValue()};
+// }
+//
+// template <>
+// TOptional<const void*> UAruFunctionLibrary::GetValueFromPropertyBag<FInt64Property, void>(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+// {
+// 	if(!PropertyBag.IsValid())
+// 	{
+// 		return {};
+// 	}
+//
+// 	TValueOrError<int64, EPropertyBagResult> SearchResult = PropertyBag.GetValueInt64(ValueName);
+// 	if(!SearchResult.HasValue())
+// 	{
+// 		return {};
+// 	}
+//
+// 	return TOptional<const void*>{&SearchResult.GetValue()};
+// }
+//
+// template <>
+// TOptional<const void*> UAruFunctionLibrary::GetValueFromPropertyBag<FDoubleProperty, void>(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+// {
+// 	if(!PropertyBag.IsValid())
+// 	{
+// 		return {};
+// 	}
+//
+// 	TValueOrError<FName, EPropertyBagResult> SearchResult = PropertyBag.GetValueName(ValueName);
+// 	if(!SearchResult.HasValue())
+// 	{
+// 		return {};
+// 	}
+//
+// 	return TOptional<const void*>{&SearchResult.GetValue()};
+// }
+//
+// template <>
+// TOptional<const void*> UAruFunctionLibrary::GetValueFromPropertyBag<FNameProperty, void>(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+// {
+// 	if(!PropertyBag.IsValid())
+// 	{
+// 		return {};
+// 	}
+//
+// 	TValueOrError<FName, EPropertyBagResult> SearchResult = PropertyBag.GetValueName(ValueName);
+// 	if(!SearchResult.HasValue())
+// 	{
+// 		return {};
+// 	}
+//
+// 	return TOptional<const void*>{&SearchResult.GetValue()};
+// }
+//
+// template <>
+// TOptional<const void*> UAruFunctionLibrary::GetValueFromPropertyBag<FTextProperty, void>(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+// {
+// 	if(!PropertyBag.IsValid())
+// 	{
+// 		return {};
+// 	}
+//
+// 	TValueOrError<FText, EPropertyBagResult> SearchResult = PropertyBag.GetValueText(ValueName);
+// 	if(!SearchResult.HasValue())
+// 	{
+// 		return {};
+// 	}
+//
+// 	return TOptional<const void*>{&SearchResult.GetValue()};
+// }
+//
+// template <>
+// TOptional<const void*> UAruFunctionLibrary::GetValueFromPropertyBag<FStrProperty, void>(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+// {
+// 	if(!PropertyBag.IsValid())
+// 	{
+// 		return {};
+// 	}
+//
+// 	TValueOrError<FString, EPropertyBagResult> SearchResult = PropertyBag.GetValueString(ValueName);
+// 	if(!SearchResult.HasValue())
+// 	{
+// 		return {};
+// 	}
+//
+// 	return TOptional<const void*>{&SearchResult.GetValue()};
+// }
+//
+// template <>
+// TOptional<const void*> UAruFunctionLibrary::GetValueFromPropertyBag<FStructProperty, void>(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+// {
+// 	if(!PropertyBag.IsValid())
+// 	{
+// 		return {};
+// 	}
+//
+// 	TValueOrError<FStructView, EPropertyBagResult> SearchResult = PropertyBag.GetValueStruct(ValueName);
+// 	if(!SearchResult.HasValue())
+// 	{
+// 		return {};
+// 	}
+//
+// 	return TOptional<const void*>{&SearchResult.GetValue()};
+// }
 
 FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 	const FProperty* InProperty,

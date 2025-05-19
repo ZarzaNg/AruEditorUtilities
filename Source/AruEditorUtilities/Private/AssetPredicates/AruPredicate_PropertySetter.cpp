@@ -1,14 +1,37 @@
 ﻿#include "AssetPredicates/AruPredicate_PropertySetter.h"
-#include "AruFunctionLibrary.h"
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
-void FAruPredicate_SetBoolValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetBoolValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
-	SetPropertyValue<FBoolProperty>(InProperty, InValue);
+	if(InProperty == nullptr || InValue == nullptr)
+	{
+		return;
+	}
+
+	const FBoolProperty* BoolProperty = CastField<FBoolProperty>(InProperty);
+	if(BoolProperty == nullptr)
+	{
+		return;
+	}
+
+	if(ValueSource == EAruValueSource::Parameters)
+	{
+		TValueOrError<bool, EPropertyBagResult> ParameterValue = InParameters.GetValueBool(FName{ParameterName});
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		BoolProperty->CopyCompleteValue(InValue, &ParameterValue.GetValue());
+	}
+	else
+	{
+		SetPropertyValue<FBoolProperty>(InProperty, InValue, InParameters);
+	}
 }
 
-void FAruPredicate_SetFloatValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetFloatValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -26,10 +49,23 @@ void FAruPredicate_SetFloatValue::Execute(const FProperty* InProperty, void* InV
 		return;
 	}
 	
-	SetPropertyValue<FNumericProperty>(InProperty, InValue);
+	if(ValueSource == EAruValueSource::Parameters)
+	{
+		TValueOrError<double, EPropertyBagResult> ParameterValue = InParameters.GetValueDouble(FName{ParameterName});
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		NumericProperty->SetFloatingPointPropertyValue(InValue, ParameterValue.GetValue());
+	}
+	else
+	{
+		SetPropertyValue<FNumericProperty>(InProperty, InValue, InParameters);
+	}
 }
 
-void FAruPredicate_SetIntegerValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetIntegerValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -47,15 +83,52 @@ void FAruPredicate_SetIntegerValue::Execute(const FProperty* InProperty, void* I
 		return;
 	}
 
-	SetPropertyValue<FNumericProperty>(InProperty, InValue);
+	if(ValueSource == EAruValueSource::Parameters)
+	{
+		TValueOrError<int64, EPropertyBagResult> ParameterValue = InParameters.GetValueInt64(FName{ParameterName});
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		NumericProperty->SetIntPropertyValue(InValue, ParameterValue.GetValue());
+	}
+	else
+	{
+		SetPropertyValue<FNumericProperty>(InProperty, InValue, InParameters);
+	}
 }
 
-void FAruPredicate_SetStringValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetStringValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
-	SetPropertyValue<FStrProperty>(InProperty, InValue);
+	if(InProperty == nullptr || InValue == nullptr)
+	{
+		return;
+	}
+
+	const FStrProperty* StrProperty = CastField<FStrProperty>(InProperty);
+	if(StrProperty == nullptr)
+	{
+		return;
+	}
+
+	if(ValueSource == EAruValueSource::Parameters)
+	{
+		TValueOrError<FString, EPropertyBagResult> ParameterValue = InParameters.GetValueString(FName{ParameterName});
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		StrProperty->SetPropertyValue(InValue, ParameterValue.GetValue());
+	}
+	else
+	{
+		SetPropertyValue<FStrProperty>(InProperty, InValue, InParameters);
+	}
 }
 
-void FAruPredicate_SetTextValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetTextValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -68,34 +141,71 @@ void FAruPredicate_SetTextValue::Execute(const FProperty* InProperty, void* InVa
 		return;
 	}
 
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>();
-	if(!OptionalValue.IsSet())
+	if(ValueSource == EAruValueSource::Parameters)
 	{
-		return;
+		TValueOrError<FText, EPropertyBagResult> ParameterValue = InParameters.GetValueText(FName{ParameterName});
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		TextProperty->SetPropertyValue(InValue, ParameterValue.GetValue());
 	}
+	else
+	{
+		TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>(InParameters);
+		if(!OptionalValue.IsSet())
+		{
+			return;
+		}
 
-	const void* PendingValue = OptionalValue.GetValue();
-	if(PendingValue == nullptr)
-	{
-		return;
-	}
+		const void* PendingValue = OptionalValue.GetValue();
+		if(PendingValue == nullptr)
+		{
+			return;
+		}
 
-	const FString* StringValue = static_cast<const FString*>(PendingValue);
-	if(StringValue == nullptr)
-	{
-		return;
-	}
+		const FString* StringValue = static_cast<const FString*>(PendingValue);
+		if(StringValue == nullptr)
+		{
+			return;
+		}
 	
-	FText PendingTextValue = FText::FromString(*StringValue);
-	TextProperty->CopyCompleteValue(InValue, &PendingTextValue);
+		FText PendingTextValue = FText::FromString(*StringValue);
+		TextProperty->CopyCompleteValue(InValue, &PendingTextValue);
+	}
 }
 
-void FAruPredicate_SetNameValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetNameValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
-	SetPropertyValue<FNameProperty>(InProperty, InValue);
+	if(InProperty == nullptr || InValue == nullptr)
+	{
+		return;
+	}
+
+	const FNameProperty* NameProperty = CastField<FNameProperty>(InProperty);
+	if(NameProperty == nullptr)
+	{
+		return;
+	}
+
+	if(ValueSource == EAruValueSource::Parameters)
+	{
+		TValueOrError<FName, EPropertyBagResult> ParameterValue = InParameters.GetValueName(FName{ParameterName});
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		NameProperty->SetPropertyValue(InValue, ParameterValue.GetValue());
+	}
+	else
+	{
+		SetPropertyValue<FNameProperty>(InProperty, InValue, InParameters);
+	}
 }
 
-void FAruPredicate_SetEnumValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetEnumValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -120,35 +230,48 @@ void FAruPredicate_SetEnumValue::Execute(const FProperty* InProperty, void* InVa
 		return;
 	}
 
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>();
-	if(!OptionalValue.IsSet())
+	if(ValueSource == EAruValueSource::Parameters)
 	{
-		return;
+		TValueOrError<uint8, EPropertyBagResult> ParameterValue = InParameters.GetValueEnum(FName{ParameterName}, EnumType);
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		UnderlyingProperty->SetIntPropertyValue(InValue, static_cast<int64>(ParameterValue.GetValue()));
 	}
-
-	const void* PendingValue = OptionalValue.GetValue();
-	if(PendingValue == nullptr)
+	else
 	{
-		return;
-	}
+		TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>(InParameters);
+		if(!OptionalValue.IsSet())
+		{
+			return;
+		}
 
-	const FString* StringValue = static_cast<const FString*>(PendingValue);
-	if(StringValue == nullptr)
-	{
-		return;
-	}
+		const void* PendingValue = OptionalValue.GetValue();
+		if(PendingValue == nullptr)
+		{
+			return;
+		}
 
-	const int64 PendingEnumValue = EnumType->GetValueByNameString(*StringValue);
-	if(PendingEnumValue == INDEX_NONE)
-	{
-		// TODO: Add warning.
-		return;
-	}
+		const FString* StringValue = static_cast<const FString*>(PendingValue);
+		if(StringValue == nullptr)
+		{
+			return;
+		}
 
-	UnderlyingProperty->SetIntPropertyValue(InValue, PendingEnumValue);
+		const int64 PendingEnumValue = EnumType->GetValueByNameString(*StringValue);
+		if(PendingEnumValue == INDEX_NONE)
+		{
+			// TODO: Add warning.
+			return;
+		}
+
+		UnderlyingProperty->SetIntPropertyValue(InValue, PendingEnumValue);
+	}
 }
 
-void FAruPredicate_SetObjectValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetObjectValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -166,14 +289,43 @@ void FAruPredicate_SetObjectValue::Execute(const FProperty* InProperty, void* In
 	{
 		return;
 	}
+	
+	if(ValueSource == EAruValueSource::Parameters)
+	{
+		TValueOrError<UObject*, EPropertyBagResult> ParameterValue = InParameters.GetValueObject(FName{ParameterName});
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		const UObject* ObjectPtr = ParameterValue.GetValue();
+		if(ObjectPtr == nullptr)
+		{
+			ObjectProperty->SetObjectPropertyValue(InValue, nullptr);
+			return;
+		}
+		
+		const UClass* ObjectClass = ObjectPtr->GetClass();
+		if(ensure(ObjectClass == nullptr))
+		{
+			return;
+		}
 
-	if(auto* PendingValue = GetNewValueBySourceType<FObjectPropertyBase>(ClassType).GetPtrOrNull())
+		if(!ObjectClass->IsChildOf(ClassType))
+		{
+			// TODO: Add Type mismatch log.
+			return;
+		}
+		
+		ObjectProperty->SetObjectPropertyValue(InValue, ParameterValue.GetValue());
+	}
+	else if(auto* PendingValue = GetNewValueBySourceType<FObjectPropertyBase>(InParameters, ClassType).GetPtrOrNull())
 	{
 		ObjectProperty->CopyCompleteValue(InValue, *PendingValue);
 	}
 }
 
-void FAruPredicate_SetStructValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetStructValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -192,34 +344,55 @@ void FAruPredicate_SetStructValue::Execute(const FProperty* InProperty, void* In
 		return;  
 	}
 
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(SourceStructType);
-	if(!OptionalValue.IsSet())
+	if(ValueSource == EAruValueSource::Parameters)
 	{
-		return;
+		TValueOrError<FStructView, EPropertyBagResult> ParameterValue = InParameters.GetValueStruct(FName{ParameterName}, SourceStructType);
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		
+		FStructView& StructValue = ParameterValue.GetValue();
+		if(!StructValue.GetScriptStruct()->IsChildOf(SourceStructType))
+		{
+			// TODO: Add Type mismatch log.
+			return;
+		}
+		
+		StructProperty->Struct->CopyScriptStruct(InValue, StructValue.GetMemory());
 	}
+	else
+	{
+		TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters, SourceStructType);
+		if(!OptionalValue.IsSet())
+		{
+			return;
+		}
 
-	const void* PendingValue = OptionalValue.GetValue();
-	if(PendingValue == nullptr)
-	{
-		return;
-	}
+		const void* PendingValue = OptionalValue.GetValue();
+		if(PendingValue == nullptr)
+		{
+			return;
+		}
 
-	const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(PendingValue);
-	if(InstancedStructPtr == nullptr)
-	{
-		return;
-	}
+		const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(PendingValue);
+		if(InstancedStructPtr == nullptr)
+		{
+			return;
+		}
 
-	const void* PendingStructValue = InstancedStructPtr->GetMemory();
-	if(PendingStructValue == nullptr)
-	{
-		return;
-	}
+		const void* PendingStructValue = InstancedStructPtr->GetMemory();
+		if(PendingStructValue == nullptr)
+		{
+			return;
+		}
 	
-	StructProperty->CopyCompleteValue(InValue, PendingStructValue);
+		StructProperty->CopyCompleteValue(InValue, PendingStructValue);
+	}
 }
 
-void FAruPredicate_SetInstancedStructValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetInstancedStructValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -243,8 +416,27 @@ void FAruPredicate_SetInstancedStructValue::Execute(const FProperty* InProperty,
 	{             
 		return;  
 	}
+
+	if(ValueSource == EAruValueSource::Parameters)
+	{
+		TValueOrError<FStructView, EPropertyBagResult> ParameterValue = InParameters.GetValueStruct(FName{ParameterName}, FInstancedStruct::StaticStruct());
+		if(!ParameterValue.HasValue())
+		{
+			// TODO: Add log.
+			return;
+		}
+		
+		FStructView& StructValue = ParameterValue.GetValue();
+		if(StructValue.GetScriptStruct() != FInstancedStruct::StaticStruct())
+		{
+			// TODO: Add Type mismatch log.
+			return;
+		}
+		
+		StructProperty->Struct->CopyScriptStruct(InValue, StructValue.GetMemory());
+	}
 	
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(StructType);
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters, StructType);
 	if(!OptionalValue.IsSet())
 	{
 		return;

@@ -1,6 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_Array.h"
 
-void FAruPredicate_AddArrayValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_AddArrayValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -30,11 +30,11 @@ void FAruPredicate_AddArrayValue::Execute(const FProperty* InProperty, void* InV
 			continue;
 		}
 		
-		PredicatePtr->Execute(ElementProperty, NewElementPtr);
+		PredicatePtr->Execute(ElementProperty, NewElementPtr, InParameters);
 	}
 }
 
-void FAruPredicate_RemoveArrayValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_RemoveArrayValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -57,7 +57,7 @@ void FAruPredicate_RemoveArrayValue::Execute(const FProperty* InProperty, void* 
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(ArrayProperty->Inner, ValuePtr))
+			if(!Filter->IsConditionMet(ArrayProperty->Inner, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -81,7 +81,7 @@ void FAruPredicate_RemoveArrayValue::Execute(const FProperty* InProperty, void* 
 	}
 }
 
-void FAruPredicate_ModifyArrayValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_ModifyArrayValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if(ArrayProperty == nullptr)
@@ -104,7 +104,7 @@ void FAruPredicate_ModifyArrayValue::Execute(const FProperty* InProperty, void* 
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(ArrayProperty->Inner, ValuePtr))
+			if(!Filter->IsConditionMet(ArrayProperty->Inner, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -126,7 +126,7 @@ void FAruPredicate_ModifyArrayValue::Execute(const FProperty* InProperty, void* 
 					continue;
 				}
 
-				Predicate->Execute(ArrayProperty->Inner, ElementPtr);
+				Predicate->Execute(ArrayProperty->Inner, ElementPtr, InParameters);
 			}
 		}
 	}

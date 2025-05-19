@@ -13,7 +13,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetGameplayTag() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set GameplayTag Container")
@@ -26,5 +26,5 @@ protected:
 public:
 	virtual ~FAruPredicate_SetGameplayTagContainer() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };

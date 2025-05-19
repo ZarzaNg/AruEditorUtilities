@@ -1,6 +1,6 @@
 ﻿#include "AruTypes.h"
 
-void FAruActionDefinition::Invoke(FProperty* InProperty, void* InValue) const
+void FAruActionDefinition::Invoke(FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -9,7 +9,7 @@ void FAruActionDefinition::Invoke(FProperty* InProperty, void* InValue) const
 
 	for(auto& Condition : ForEachCondition())
 	{
-		if(!Condition.IsConditionMet(InProperty, InValue))
+		if(!Condition.IsConditionMet(InProperty, InValue, InParameters))
 		{
 			return;
 		}
@@ -17,6 +17,6 @@ void FAruActionDefinition::Invoke(FProperty* InProperty, void* InValue) const
 
 	for(auto& Predicate : ForEachPredicates())
 	{
-		Predicate.Execute(InProperty, InValue);
+		Predicate.Execute(InProperty, InValue, InParameters);
 	}
 }

@@ -8,7 +8,7 @@ struct FAruPredicate_AddArrayValue : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_AddArrayValue() override {};
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruPredicate>> Predicates;
@@ -21,7 +21,7 @@ struct FAruPredicate_RemoveArrayValue : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_RemoveArrayValue() override {};
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruFilter>> Filters;
@@ -33,7 +33,7 @@ struct FAruPredicate_ModifyArrayValue : public FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate_ModifyArrayValue() override{};
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruFilter>> Filters;

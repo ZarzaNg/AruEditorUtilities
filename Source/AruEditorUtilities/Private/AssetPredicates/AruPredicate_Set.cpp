@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_Set.h"
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
-void FAruPredicate_AddSetElement::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_AddSetElement::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if(SetProperty == nullptr)
@@ -41,7 +41,7 @@ void FAruPredicate_AddSetElement::Execute(const FProperty* InProperty, void* InV
 			continue;
 		}
 		
-		PredicatePtr->Execute(ElementProperty, PendingElementPtr);
+		PredicatePtr->Execute(ElementProperty, PendingElementPtr, InParameters);
 	}
 	
 	FScriptSetHelper SetHelper(SetProperty, InValue);
@@ -67,7 +67,7 @@ void FAruPredicate_AddSetElement::Execute(const FProperty* InProperty, void* InV
 	ElementProperty->CopyCompleteValue(NewElementPtr, PendingElementPtr);
 }
 
-void FAruPredicate_RemoveSetValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_RemoveSetValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if(SetProperty == nullptr)
@@ -90,7 +90,7 @@ void FAruPredicate_RemoveSetValue::Execute(const FProperty* InProperty, void* In
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(SetProperty->ElementProp, ValuePtr))
+			if(!Filter->IsConditionMet(SetProperty->ElementProp, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -114,7 +114,7 @@ void FAruPredicate_RemoveSetValue::Execute(const FProperty* InProperty, void* In
 	}
 }
 
-void FAruPredicate_ModifySetValue::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_ModifySetValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if(SetProperty == nullptr)
@@ -143,7 +143,7 @@ void FAruPredicate_ModifySetValue::Execute(const FProperty* InProperty, void* In
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(SetProperty->ElementProp, ValuePtr))
+			if(!Filter->IsConditionMet(SetProperty->ElementProp, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -182,7 +182,7 @@ void FAruPredicate_ModifySetValue::Execute(const FProperty* InProperty, void* In
 				continue;
 			}
 
-			Predicate->Execute(SetProperty->ElementProp, PendingElementPtr);
+			Predicate->Execute(SetProperty->ElementProp, PendingElementPtr, InParameters);
 		}
 		
 		if(SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)

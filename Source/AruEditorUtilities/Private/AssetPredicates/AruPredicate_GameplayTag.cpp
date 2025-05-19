@@ -1,6 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_GameplayTag.h"
 
-void FAruPredicate_SetGameplayTag::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetGameplayTag::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -25,13 +25,13 @@ void FAruPredicate_SetGameplayTag::Execute(const FProperty* InProperty, void* In
 		return;
 	}
 
-	if(auto* PendingValue = GetNewValueBySourceType<FStructProperty>().GetPtrOrNull())
+	if(auto* PendingValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull())
 	{
 		StructProperty->CopyCompleteValue(InValue, *PendingValue);
 	}
 }
 
-void FAruPredicate_SetGameplayTagContainer::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_SetGameplayTagContainer::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -56,7 +56,7 @@ void FAruPredicate_SetGameplayTagContainer::Execute(const FProperty* InProperty,
 		return;
 	}
 	
-	if(auto* PendingValue = GetNewValueBySourceType<FStructProperty>().GetPtrOrNull())
+	if(auto* PendingValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull())
 	{
 		StructProperty->CopyCompleteValue(InValue, *PendingValue);
 	}

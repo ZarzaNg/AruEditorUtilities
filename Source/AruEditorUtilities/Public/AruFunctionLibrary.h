@@ -17,16 +17,35 @@ struct FAruPropertyContext
 	FORCEINLINE bool IsValid() const { return PropertyPtr != nullptr && ValuePtr.IsSet(); }
 };
 
+struct FAruProcessingParameters
+{
+	const TArray<FAruActionDefinition>&		Actions;
+	const FInstancedPropertyBag&			Parameters;
+	const int32								RemainTime;
+
+	FAruProcessingParameters() = delete;
+	FAruProcessingParameters(
+		const TArray<FAruActionDefinition>& InActions,
+		const FInstancedPropertyBag&		InParameters,
+		const int32							InRemainTime)
+			: Actions(InActions), Parameters(InParameters), RemainTime(InRemainTime){};
+
+	FAruProcessingParameters GetSubsequentParameters() const
+	{
+		return {Actions, Parameters, RemainTime-1};
+	} 
+};
+
 UCLASS()
 class ARUEDITORUTILITIES_API UAruFunctionLibrary : public UObject
 {
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable, CallInEditor)
-	static void ProcessSelectedAssets(const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth);
+	static void ProcessSelectedAssets(const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs);
 
 	UFUNCTION(BlueprintCallable, CallInEditor)
-	static void ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& ActionDefinitions, int32 MaxDepth = 5);
+	static void ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs);
 
 	static FAruPropertyContext FindPropertyByPath(
 		const FProperty* InProperty,
@@ -46,6 +65,11 @@ public:
 	static void ProcessContainerValues(
 		FProperty* PropertyPtr,
 		void* ValuePtr,
-		const TArray<FAruActionDefinition>& Actions,
-		const uint8 RemainTimes);
+		const FAruProcessingParameters& InParameters);
+
+	// template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
+	// static TOptional<const void*> GetValueFromPropertyBag(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
+	// {
+	// 	return {};
+	// }
 };

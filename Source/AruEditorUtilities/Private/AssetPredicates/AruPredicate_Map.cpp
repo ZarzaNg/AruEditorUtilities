@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_Map.h"
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
-void FAruPredicate_AddMapPair::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_AddMapPair::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
 	if(MapProperty == nullptr)
@@ -38,7 +38,7 @@ void FAruPredicate_AddMapPair::Execute(const FProperty* InProperty, void* InValu
 	{
 		if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 		{
-			PredicatePtr->Execute(KeyProperty, PendingKeyPtr);
+			PredicatePtr->Execute(KeyProperty, PendingKeyPtr, InParameters);
 		}
 	}
 
@@ -77,12 +77,12 @@ void FAruPredicate_AddMapPair::Execute(const FProperty* InProperty, void* InValu
 	{
 		if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 		{
-			PredicatePtr->Execute(ValueProperty, NewValuePtr);
+			PredicatePtr->Execute(ValueProperty, NewValuePtr, InParameters);
 		}
 	}
 }
 
-void FAruPredicate_RemoveMapPair::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_RemoveMapPair::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
 	{
@@ -105,7 +105,7 @@ void FAruPredicate_RemoveMapPair::Execute(const FProperty* InProperty, void* InV
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr))
+			if(!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr, InParameters))
 			{
 				return false;
 			}
@@ -119,7 +119,7 @@ void FAruPredicate_RemoveMapPair::Execute(const FProperty* InProperty, void* InV
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr))
+			if(!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -153,7 +153,7 @@ void FAruPredicate_RemoveMapPair::Execute(const FProperty* InProperty, void* InV
 	}
 }
 
-void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InValue) const
+void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
 	{
@@ -183,7 +183,7 @@ void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InV
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr))
+			if(!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr, InParameters))
 			{
 				return false;
 			}
@@ -197,7 +197,7 @@ void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InV
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr))
+			if(!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -245,7 +245,7 @@ void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InV
 		{
 			if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 			{
-				PredicatePtr->Execute(MapProperty->KeyProp, PendingKeyPtr);
+				PredicatePtr->Execute(MapProperty->KeyProp, PendingKeyPtr, InParameters);
 			}
 		}
 
@@ -261,7 +261,7 @@ void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InV
 		{
 			if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 			{
-				PredicatePtr->Execute(MapProperty->ValueProp, MapValuePtr);
+				PredicatePtr->Execute(MapProperty->ValueProp, MapValuePtr, InParameters);
 			}
 		}
 		

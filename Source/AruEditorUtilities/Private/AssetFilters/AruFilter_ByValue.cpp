@@ -1,6 +1,6 @@
 ﻿#include "AssetFilters/AruFilter_ByValue.h"
 
-bool FAruFilter_ByNumericValue::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+bool FAruFilter_ByNumericValue::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -49,7 +49,7 @@ bool FAruFilter_ByNumericValue::IsConditionMet(const FProperty* InProperty, cons
 	return bInverseCondition;
 }
 
-bool FAruFilter_ByBoolean::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+bool FAruFilter_ByBoolean::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
 	{
@@ -78,7 +78,7 @@ bool FAruFilter_ByBoolean::IsConditionMet(const FProperty* InProperty, const voi
 	return CompareValue(BooleanProperty->GetPropertyValue(InValue)) ^ bInverseCondition;
 }
 
-bool FAruFilter_ByObject::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+bool FAruFilter_ByObject::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty);
 	if(ObjectProperty == nullptr)
@@ -91,7 +91,7 @@ bool FAruFilter_ByObject::IsConditionMet(const FProperty* InProperty, const void
 	return (ObjectPtr == ConditionValue) ^ bInverseCondition;
 }
 
-bool FAruFilter_ByEnum::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+bool FAruFilter_ByEnum::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || ConditionValue.IsEmpty())
 	{
@@ -129,7 +129,7 @@ bool FAruFilter_ByEnum::IsConditionMet(const FProperty* InProperty, const void* 
 			) ^ bInverseCondition;
 }
 
-bool FAruFilter_ByString::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+bool FAruFilter_ByString::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || ConditionValue.IsEmpty())
 	{
@@ -161,7 +161,7 @@ bool FAruFilter_ByString::IsConditionMet(const FProperty* InProperty, const void
 	return bInverseCondition;
 }
 
-bool FAruFilter_ByText::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+bool FAruFilter_ByText::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || ConditionValue.IsEmpty())
 	{
@@ -194,7 +194,7 @@ bool FAruFilter_ByText::IsConditionMet(const FProperty* InProperty, const void* 
 	return bInverseCondition;
 }
 
-bool FAruFilter_ByGameplayTagContainer::IsConditionMet(const FProperty* InProperty, const void* InValue) const
+bool FAruFilter_ByGameplayTagContainer::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr || TagQuery.IsEmpty())
 	{

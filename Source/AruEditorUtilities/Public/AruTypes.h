@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "StructUtils/InstancedStruct.h"
+#include "StructUtils/PropertyBag.h"
 #include "AruTypes.generated.h"
 
 USTRUCT(BlueprintType)
@@ -9,7 +10,7 @@ struct FAruFilter
 	GENERATED_BODY()
 public:
 	virtual ~FAruFilter(){}
-	virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue) const {return bInverseCondition;}
+	virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const {return bInverseCondition;}
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=Config, meta=(AdvancedClassDisplay))
 	bool bInverseCondition = false;
@@ -21,7 +22,7 @@ struct FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate(){};
-	virtual void Execute(const FProperty* InProperty, void* InValue) const {};
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const {};
 };
 
 USTRUCT(BlueprintType)
@@ -29,7 +30,7 @@ struct FAruActionDefinition
 {
 	GENERATED_BODY()
 public:
-	void Invoke(FProperty* InProperty, void* InValue) const;
+	void Invoke(FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Aru Editor Utilities", meta=(ExcludeBaseStruct))
@@ -73,3 +74,26 @@ public:
 		return TRangedForStructArray{ActionPredicates};
 	}
 };
+
+UCLASS(BlueprintType)
+class ARUEDITORUTILITIES_API UAruActionConfigData : public UDataAsset
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TArray<FAruActionDefinition> ActionDefinitions;
+};
+
+USTRUCT(BlueprintType)
+struct FAruProcessConfig
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+	FInstancedPropertyBag Parameters;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxSearchDepth = 5;
+};
+
+

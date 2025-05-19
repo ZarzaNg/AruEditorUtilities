@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "AruTypes.h"
 #include "AruFunctionLibrary.h"
+#include "StructUtils/PropertyBag.h"
 #include "UObject/PropertyAccessUtil.h"
 #include "AruPredicate_PropertySetter.generated.h"
 
@@ -11,7 +12,8 @@ enum class EAruValueSource : uint8
 {
 	Value		UMETA(DisplayName="From Value"),
 	Object		UMETA(DisplayName="From Object"),
-	DataTable	UMETA(DisplayName="From DataTable")
+	DataTable	UMETA(DisplayName="From DataTable"),
+	Parameters	UMETA(DisplayName="From Parameters")
 };
 
 USTRUCT(meta=(Hidden))
@@ -25,20 +27,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(DisplayPriority = 0))
 	EAruValueSource ValueSource = EAruValueSource::Value;
 
-	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource!=EAruValueSource::Value", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource!=EAruValueSource::Value&&ValueSource!=EAruValueSource::Parameters", EditConditionHides))
 	FString PathToProperty{"Path.To.Property"};
 
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Object", EditConditionHides))
 	TObjectPtr<UObject> Object = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::DataTable", EditConditionHides))
-	FName RowName = FName{"None"};
+	FString RowName{};
 
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::DataTable", EditConditionHides))
 	TObjectPtr<UDataTable> DataTable = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Parameters", EditConditionHides))
+	FString ParameterName{};
+
 	template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
-	TOptional<const void*> GetNewValueBySourceType(const UStruct* TypeToCheck = nullptr) const
+	TOptional<const void*> GetNewValueBySourceType(const FInstancedPropertyBag& InParameters, const UStruct* TypeToCheck = nullptr) const
 	{
 		auto IsCompatibleType = [&TypeToCheck](const FProperty* NewValueType, const void* NewValue) -> bool
 		{
@@ -158,18 +163,36 @@ protected:
 			}
 		case EAruValueSource::DataTable:
 			{
-				if(RowName.IsNone() || PathToProperty.IsEmpty() || DataTable == nullptr)
+				if(RowName.IsEmpty() || PathToProperty.IsEmpty() || DataTable == nullptr)
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Find value failed", "Please check 'PathToProperty' and 'Object' as well as 'DataTable' configs."));
 					return {};
 				}
-
-				uint8* const* RowStructPtr = DataTable->GetRowMap().Find(RowName);
+				
+				FName InternalRowName{RowName};
+				if(RowName[0] == '@')
+				{
+					TValueOrError<FName, EPropertyBagResult> SearchNameResult = InParameters.GetValueName(FName{RowName.RightChop(1)});
+					if(SearchNameResult.HasValue())
+					{
+						InternalRowName = SearchNameResult.GetValue();
+					}
+					else
+					{
+						TValueOrError<FString, EPropertyBagResult> SearchStringResult = InParameters.GetValueString(FName{RowName.RightChop(1)});
+						if(SearchStringResult.HasValue())
+						{
+							InternalRowName = FName{SearchStringResult.GetValue()};
+						}
+					}
+				}
+				
+				uint8* const* RowStructPtr = DataTable->GetRowMap().Find(FName{InternalRowName});
 				if(RowStructPtr == nullptr)
 				{
 					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 						FText::Format(LOCTEXT("Find value failed", "Can't find row: '{0}' in DataTable: '{1}'."),
-							FText::FromName(RowName),
+							FText::FromName(InternalRowName),
 							FText::FromName(DataTable.GetFName())));
 					return {};
 				}
@@ -198,13 +221,18 @@ protected:
 
 				return TOptional<const void*>{PropertyContext.ValuePtr.GetValue()};
 			}
+		case EAruValueSource::Parameters:
+			{
+				// Can't get pointer from property bag, leave this functionality outside.
+				return {};
+			}
 		}
 
 		return {};
 	}
 	
 	template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
-	void SetPropertyValue(const FProperty* InProperty, void* InValue) const
+	void SetPropertyValue(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 	{
 		if(InProperty == nullptr || InValue == nullptr)
 		{
@@ -217,7 +245,7 @@ protected:
 			return;
 		}
 
-		TOptional<const void*> OptionalValue = GetNewValueBySourceType<T>();
+		TOptional<const void*> OptionalValue = GetNewValueBySourceType<T>(InParameters);
 		if(!OptionalValue.IsSet())
 		{
 			return;
@@ -243,7 +271,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetBoolValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Float Value")
@@ -256,7 +284,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetFloatValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Integer Value")
@@ -269,7 +297,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetIntegerValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set String Value")
@@ -282,7 +310,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetStringValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Text Value")
@@ -295,7 +323,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetTextValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Name Value")
@@ -308,7 +336,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetNameValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Enum Value")
@@ -322,7 +350,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetEnumValue() override{}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Struct Value")
@@ -335,7 +363,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetStructValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Object Value")
@@ -348,7 +376,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetObjectValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Instanced Struct Value")
@@ -361,7 +389,7 @@ protected:
 public:
 	virtual ~FAruPredicate_SetInstancedStructValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue) const override;
+	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
 };
 
 #undef LOCTEXT_NAMESPACE
