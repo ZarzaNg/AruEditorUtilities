@@ -71,9 +71,12 @@ PropFlow Catalyst is a Unreal Engine plugin that facilitates the bulk configurat
 ### 🔍 Custom Filters
 Create a custom filter by inheriting FAruFilter and implementing the condition check logic:
 ```C++
-class FMyCustomFilter : public FAruFilter
+USTRUCT()
+struct FMyCustomFilter : public FAruFilter
 {
+    GENERATED_BODY()
 public:
+    virtual ~FMyCustomFilter() override {};
     virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue) const override
     {
         // Your custom condition check logic here
@@ -89,9 +92,12 @@ public:
 ### ⚙️ Custom Predicates (Operations)
 Create a custom operation by inheriting FAruPredicate and implementing the execution logic:
 ```C++
-class FMyCustomAction : public FAruPredicate
+USTRUCT()
+struct FMyCustomAction : public FAruPredicate
 {
+    GENERATED_BODY()
 public:
+    virtual ~FMyCustomAction() override {};
     virtual void Execute(const FProperty* InProperty, void* InValue) const override
     {
         // Example: Double integer properties
