@@ -66,10 +66,4 @@ public:
 		FProperty* PropertyPtr,
 		void* ValuePtr,
 		const FAruProcessingParameters& InParameters);
-
-	// template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
-	// static TOptional<const void*> GetValueFromPropertyBag(const FInstancedPropertyBag& PropertyBag, const FName ValueName)
-	// {
-	// 	return {};
-	// }
 };
