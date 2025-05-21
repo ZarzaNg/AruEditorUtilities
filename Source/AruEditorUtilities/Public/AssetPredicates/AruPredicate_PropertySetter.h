@@ -42,192 +42,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Parameters", EditConditionHides))
 	FString ParameterName{};
 
+protected:
 	template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
 	TOptional<const void*> GetNewValueBySourceType(const FInstancedPropertyBag& InParameters, const UStruct* TypeToCheck = nullptr) const
 	{
-		auto IsCompatibleType = [&TypeToCheck](const FProperty* NewValueType, const void* NewValue) -> bool
-		{
-			if(!NewValueType->IsA<T>())
-			{
-				return false;
-			}
-			
-			if(TypeToCheck == nullptr)
-			{
-				return true;
-			}
-
-			if(const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(NewValueType))
-			{
-				const UObject* Object = ObjectProperty->GetObjectPropertyValue(NewValue);
-				if(Object == nullptr)
-				{
-					// We might want to clear the property value.
-					// So when we got nullptr, we consider it as matched.
-					return true;
-				}
-				
-				const UClass* ObjectClass = Object->GetClass();
-				if(ObjectClass == nullptr)
-				{
-					return false;
-				}
-
-				return ObjectClass->IsChildOf(TypeToCheck);
-			}
-			
-			if(const FStructProperty* StructProperty = CastField<FStructProperty>(NewValueType))
-			{
-				const UScriptStruct* ScriptStruct = StructProperty->Struct;
-				if(ScriptStruct == nullptr)
-				{
-					return false;
-				}
-
-				if(TypeToCheck == FInstancedStruct::StaticStruct())
-				{
-					return ScriptStruct == FInstancedStruct::StaticStruct();
-				}
-
-				const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(NewValue);  
-				if(InstancedStructPtr == nullptr)  
-				{             
-					return false;  
-				}
-
-				const UScriptStruct* InnerStruct = InstancedStructPtr->GetScriptStruct();
-				if(InnerStruct == nullptr)
-				{
-					return false;
-				}
-				
-				return InnerStruct->IsChildOf(TypeToCheck);
-			}
-
-			return false;
-		};
-		
 		switch (ValueSource)
 		{
-		case EAruValueSource::Value:
-			{
-				static FName ValueName{"NewValue"};
-				const FProperty* Property = PropertyAccessUtil::FindPropertyByName(ValueName, GetScriptedStruct());
-				if(!ensureMsgf(Property != nullptr, TEXT("Can't find NewValue property in derived struct.")))
-				{
-					return {};
-				}
-				
-				const void* PropertyValue = Property->ContainerPtrToValuePtr<void>(this);
-				if(!IsCompatibleType(Property, PropertyValue))
-				{
-					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
-					return {};
-				}
-				
-				return TOptional<const void*>{PropertyValue};
-			}
-		case EAruValueSource::Object:
-			{
-				if(PathToProperty.IsEmpty() || Object == nullptr)
-				{
-					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Find value failed", "Please check 'PathToProperty' and 'Object' configs."));
-					return {};
-				}
-
-				const UClass* NativeClass = Object.GetClass();
-				const UObject* NativeObject = Object;
-				if(UBlueprint* BlueprintObject = Cast<UBlueprint>(Object))
-				{
-					NativeClass = BlueprintObject->GeneratedClass;
-					NativeObject= NativeClass->GetDefaultObject();
-				}
-
-				auto&& PropertyContext = UAruFunctionLibrary::FindPropertyByPath(NativeClass, NativeObject, PathToProperty);
-				if(!PropertyContext.IsValid())
-				{
-					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
-						FText::Format(LOCTEXT("Find value failed", "Can't find property by path: '{0}' in object: '{1}'."),
-							FText::FromString(PathToProperty),
-							FText::FromName(Object.GetFName())));
-					return {};
-				}
-
-				if(!IsCompatibleType(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
-				{
-					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
-					return {};
-				}
-
-				return TOptional<const void*>{PropertyContext.ValuePtr.GetValue()};
-			}
-		case EAruValueSource::DataTable:
-			{
-				if(RowName.IsEmpty() || PathToProperty.IsEmpty() || DataTable == nullptr)
-				{
-					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Find value failed", "Please check 'PathToProperty' and 'Object' as well as 'DataTable' configs."));
-					return {};
-				}
-				
-				FName InternalRowName{RowName};
-				if(RowName[0] == '@')
-				{
-					TValueOrError<FName, EPropertyBagResult> SearchNameResult = InParameters.GetValueName(FName{RowName.RightChop(1)});
-					if(SearchNameResult.HasValue())
-					{
-						InternalRowName = SearchNameResult.GetValue();
-					}
-					else
-					{
-						TValueOrError<FString, EPropertyBagResult> SearchStringResult = InParameters.GetValueString(FName{RowName.RightChop(1)});
-						if(SearchStringResult.HasValue())
-						{
-							InternalRowName = FName{SearchStringResult.GetValue()};
-						}
-					}
-				}
-				
-				uint8* const* RowStructPtr = DataTable->GetRowMap().Find(FName{InternalRowName});
-				if(RowStructPtr == nullptr)
-				{
-					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
-						FText::Format(LOCTEXT("Find value failed", "Can't find row: '{0}' in DataTable: '{1}'."),
-							FText::FromName(InternalRowName),
-							FText::FromName(DataTable.GetFName())));
-					return {};
-				}
-
-				uint8* RowStruct = *RowStructPtr;
-				if(RowStruct == nullptr)
-				{
-					return {};
-				}
-
-				auto&& PropertyContext = UAruFunctionLibrary::FindPropertyByPath(DataTable->RowStruct, RowStruct, PathToProperty);
-				if(!PropertyContext.IsValid())
-				{
-					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
-						FText::Format(LOCTEXT("Find value failed", "Can't find property by path: '{0}' in struct: '{1}'."),
-							FText::FromString(PathToProperty),
-							FText::FromName(DataTable->RowStruct.GetFName())));
-					return {};
-				}
-
-				if(!IsCompatibleType(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue()))
-				{
-					FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Type mismatches", "Mismatch between target and source value types."));
-					return {};
-				}
-
-				return TOptional<const void*>{PropertyContext.ValuePtr.GetValue()};
-			}
-		case EAruValueSource::Parameters:
-			{
-				// Can't get pointer from property bag, leave this functionality outside.
-				return {};
-			}
+		case EAruValueSource::Value:		return GetValueFromStructProperty(T::StaticClass(), TypeToCheck);
+		case EAruValueSource::Object:		return GetValueFromObjectAsset(T::StaticClass(), TypeToCheck);
+		case EAruValueSource::DataTable:	return GetValueFromDataTable(T::StaticClass(), InParameters, TypeToCheck);
+		case EAruValueSource::Parameters:	return {};
 		}
-
 		return {};
 	}
 	
@@ -259,6 +84,26 @@ protected:
 	
 		SubProperty->CopyCompleteValue(InValue, PendingValue);
 	}
+private:
+	TOptional<const void*> GetValueFromStructProperty(const FFieldClass* SourceProperty, const UStruct* SourceType = nullptr) const;
+	TOptional<const void*> GetValueFromObjectAsset(const FFieldClass* SourceProperty, const UStruct* SourceType = nullptr) const;
+	TOptional<const void*> GetValueFromDataTable(const FFieldClass* SourceProperty, const FInstancedPropertyBag& InParameters, const UStruct* SourceType = nullptr) const;
+
+	
+	static bool IsCompatibleType(
+		const FProperty* TargetProperty,
+		const void* TargetValue,
+		const UStruct* SourceType = nullptr);
+
+	static bool IsCompatibleObjectType(
+		const FObjectPropertyBase* TargetProperty,
+		const void* TargetValue,
+		const UStruct* SourceType = nullptr);
+	
+	static bool IsCompatibleStructType(
+		const FStructProperty* TargetProperty,
+		const void* TargetValue,
+		const UStruct* SourceType = nullptr);
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Bool Value")
