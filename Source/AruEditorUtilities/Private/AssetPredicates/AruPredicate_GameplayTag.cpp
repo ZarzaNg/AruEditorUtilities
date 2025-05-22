@@ -1,63 +1,75 @@
 ﻿#include "AssetPredicates/AruPredicate_GameplayTag.h"
 
-void FAruPredicate_SetGameplayTag::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruPredicate_SetGameplayTag::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
-	if(InProperty == nullptr || InValue == nullptr)
+	if (InProperty == nullptr || InValue == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
-	if(StructProperty == nullptr)
+	if (StructProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	const UScriptStruct* SourceStructType = StructProperty->Struct;
-	if(SourceStructType == nullptr || SourceStructType != FGameplayTag::StaticStruct())  
-	{          
-		return;  
+	if (SourceStructType == nullptr || SourceStructType != FGameplayTag::StaticStruct())
+	{
+		return false;
 	}
 
 	FGameplayTag* GameplayTagPtr = static_cast<FGameplayTag*>(InValue);
-	if(GameplayTagPtr == nullptr)
+	if (GameplayTagPtr == nullptr)
 	{
-		return;
+		return false;
 	}
 
-	if(auto* PendingValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull())
+	if (auto* PendingValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull())
 	{
 		StructProperty->CopyCompleteValue(InValue, *PendingValue);
+		return true;
 	}
+
+	return false;
 }
 
-void FAruPredicate_SetGameplayTagContainer::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruPredicate_SetGameplayTagContainer::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
-	if(InProperty == nullptr || InValue == nullptr)
+	if (InProperty == nullptr || InValue == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
-	if(StructProperty == nullptr)
+	if (StructProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	const UScriptStruct* SourceStructType = StructProperty->Struct;
-	if(SourceStructType == nullptr || SourceStructType != FGameplayTagContainer::StaticStruct())  
-	{          
-		return;  
+	if (SourceStructType == nullptr || SourceStructType != FGameplayTagContainer::StaticStruct())
+	{
+		return false;
 	}
 
 	FGameplayTagContainer* GameplayTagPtr = static_cast<FGameplayTagContainer*>(InValue);
-	if(GameplayTagPtr == nullptr)
+	if (GameplayTagPtr == nullptr)
 	{
-		return;
+		return false;
 	}
-	
-	if(auto* PendingValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull())
+
+	if (auto* PendingValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull())
 	{
 		StructProperty->CopyCompleteValue(InValue, *PendingValue);
+		return true;
 	}
+
+	return false;
 }

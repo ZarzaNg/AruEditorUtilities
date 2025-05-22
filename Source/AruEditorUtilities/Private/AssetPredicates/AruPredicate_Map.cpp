@@ -1,30 +1,33 @@
 ﻿#include "AssetPredicates/AruPredicate_Map.h"
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
-void FAruPredicate_AddMapPair::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruPredicate_AddMapPair::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
-	if(MapProperty == nullptr)
+	if (MapProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
-	if(PredicatesForKey.Num() == 0)
+	if (PredicatesForKey.Num() == 0)
 	{
-		return;
+		return false;
 	}
 
 	FProperty* KeyProperty = MapProperty->KeyProp;
 	FProperty* ValueProperty = MapProperty->ValueProp;
-	if(KeyProperty == nullptr || ValueProperty == nullptr)
+	if (KeyProperty == nullptr || ValueProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	void* PendingKeyPtr = FMemory::Malloc(KeyProperty->GetSize());
-	if(PendingKeyPtr == nullptr)
+	if (PendingKeyPtr == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	ON_SCOPE_EXIT
@@ -33,203 +36,218 @@ void FAruPredicate_AddMapPair::Execute(const FProperty* InProperty, void* InValu
 		FMemory::Free(PendingKeyPtr);
 	};
 
+	bool bExecutedSuccessfully = false;
+
 	KeyProperty->InitializeValue(PendingKeyPtr);
-	for(auto& Predicate : PredicatesForKey)
+	for (auto& Predicate : PredicatesForKey)
 	{
-		if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
+		if (const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 		{
-			PredicatePtr->Execute(KeyProperty, PendingKeyPtr, InParameters);
+			bExecutedSuccessfully |= PredicatePtr->Execute(KeyProperty, PendingKeyPtr, InParameters);
 		}
 	}
 
 	FScriptMapHelper MapHelper{MapProperty, InValue};
-	if(MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
+	if (MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate keys", "The key pending to add already exists in this map."));
-		return;
+		return false;
 	}
-	
+
 	int32 NewElementIndex = MapHelper.AddDefaultValue_Invalid_NeedsRehash();
-	if(!MapHelper.IsValidIndex(NewElementIndex))
+	if (!MapHelper.IsValidIndex(NewElementIndex))
 	{
-		return;
+		MapHelper.RemoveAt(NewElementIndex);
+		return false;
 	}
-	
+
 	ON_SCOPE_EXIT
 	{
 		MapHelper.Rehash();
 	};
-	
+
 	void* NewKeyPtr = MapHelper.GetKeyPtr(NewElementIndex);
-	if(NewKeyPtr == nullptr)
+	if (NewKeyPtr == nullptr)
 	{
-		return;
+		MapHelper.RemoveAt(NewElementIndex);
+		return false;
 	}
 	KeyProperty->CopyCompleteValue(NewKeyPtr, PendingKeyPtr);
-	
+
 	void* NewValuePtr = MapHelper.GetValuePtr(NewElementIndex);
-	if(NewValuePtr == nullptr)
+	if (NewValuePtr == nullptr)
 	{
-		return;
+		MapHelper.RemoveAt(NewElementIndex);
+		return false;
 	}
-	
-	for(auto& Predicate : PredicatesForValue)
+
+	for (auto& Predicate : PredicatesForValue)
 	{
-		if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
+		if (const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 		{
 			PredicatePtr->Execute(ValueProperty, NewValuePtr, InParameters);
 		}
 	}
+
+	return bExecutedSuccessfully;
 }
 
-void FAruPredicate_RemoveMapPair::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruPredicate_RemoveMapPair::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
-	if(KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
+	if (KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
 	{
-		return;
+		return false;
 	}
-	
+
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
-	if(MapProperty == nullptr)
+	if (MapProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	auto ShouldRemove = [&](const void* KeyPtr, const void* ValuePtr)
 	{
-		for(const TInstancedStruct<FAruFilter>& FilterStruct : KeyFilters)
+		for (const TInstancedStruct<FAruFilter>& FilterStruct : KeyFilters)
 		{
 			const FAruFilter* Filter = FilterStruct.GetPtr<FAruFilter>();
-			if(Filter == nullptr)
+			if (Filter == nullptr)
 			{
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr, InParameters))
+			if (!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr, InParameters))
 			{
 				return false;
 			}
 		}
 
-		for(const TInstancedStruct<FAruFilter>& FilterStruct : ValueFilters)
+		for (const TInstancedStruct<FAruFilter>& FilterStruct : ValueFilters)
 		{
 			const FAruFilter* Filter = FilterStruct.GetPtr<FAruFilter>();
-			if(Filter == nullptr)
+			if (Filter == nullptr)
 			{
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr, InParameters))
+			if (!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr, InParameters))
 			{
 				return false;
 			}
 		}
-		
+
 		return true;
 	};
 
 	TArray<int32> PendingRemove;
 	FScriptMapHelper MapHelper{MapProperty, InValue};
-	
+
 	ON_SCOPE_EXIT
 	{
 		MapHelper.Rehash();
 	};
-	
-	for(int32 Index = 0; Index < MapHelper.Num(); ++Index)  
-	{         
-		void* MapKeyPtr = MapHelper.GetKeyPtr(Index);  
+
+	for (int32 Index = 0; Index < MapHelper.Num(); ++Index)
+	{
+		void* MapKeyPtr = MapHelper.GetKeyPtr(Index);
 		void* MapValuePtr = MapHelper.GetValuePtr(Index);
 
-		if(ShouldRemove(MapKeyPtr, MapValuePtr))
+		if (ShouldRemove(MapKeyPtr, MapValuePtr))
 		{
 			PendingRemove.Add(Index);
 		}
 	}
 
-	for(int32& Index : PendingRemove)
+	for (int32& Index : PendingRemove)
 	{
 		MapHelper.RemoveAt(Index);
 	}
+	return PendingRemove.Num() > 0;
 }
 
-void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruPredicate_ModifyMapPair::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
-	if(KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
+	if (KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
 	{
-		return;
+		return false;
 	}
-	
+
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
-	if(MapProperty == nullptr)
+	if (MapProperty == nullptr)
 	{
-		return;
+		return false;
 	}
-	
+
 	FProperty* KeyProperty = MapProperty->KeyProp;
 	FProperty* ValueProperty = MapProperty->ValueProp;
-	if(KeyProperty == nullptr || ValueProperty == nullptr)
+	if (KeyProperty == nullptr || ValueProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	auto ShouldModify = [&](const void* KeyPtr, const void* ValuePtr)
 	{
-		for(const TInstancedStruct<FAruFilter>& FilterStruct : KeyFilters)
+		for (const TInstancedStruct<FAruFilter>& FilterStruct : KeyFilters)
 		{
 			const FAruFilter* Filter = FilterStruct.GetPtr<FAruFilter>();
-			if(Filter == nullptr)
+			if (Filter == nullptr)
 			{
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr, InParameters))
+			if (!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr, InParameters))
 			{
 				return false;
 			}
 		}
 
-		for(const TInstancedStruct<FAruFilter>& FilterStruct : ValueFilters)
+		for (const TInstancedStruct<FAruFilter>& FilterStruct : ValueFilters)
 		{
 			const FAruFilter* Filter = FilterStruct.GetPtr<FAruFilter>();
-			if(Filter == nullptr)
+			if (Filter == nullptr)
 			{
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr, InParameters))
+			if (!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr, InParameters))
 			{
 				return false;
 			}
 		}
-		
+
 		return true;
 	};
 
 	TArray<int32> PendingToModify;
 	FScriptMapHelper MapHelper{MapProperty, InValue};
-	
+
 	ON_SCOPE_EXIT
 	{
 		MapHelper.Rehash();
 	};
-	
-	for(int32 Index = 0; Index < MapHelper.Num(); ++Index)
+
+	for (int32 Index = 0; Index < MapHelper.Num(); ++Index)
 	{
-		void* MapKeyPtr = MapHelper.GetKeyPtr(Index);  
+		void* MapKeyPtr = MapHelper.GetKeyPtr(Index);
 		void* MapValuePtr = MapHelper.GetValuePtr(Index);
 
-		if(ShouldModify(MapKeyPtr, MapValuePtr))
+		if (ShouldModify(MapKeyPtr, MapValuePtr))
 		{
 			PendingToModify.Add(Index);
 		}
 	}
 
-	for(int32& Index : PendingToModify)
+	bool bExecutedSuccessfully = false;
+	for (int32& Index : PendingToModify)
 	{
 		void* MapKeyPtr = MapHelper.GetKeyPtr(Index);
 		void* PendingKeyPtr = FMemory::Malloc(KeyProperty->GetSize());
-		if(PendingKeyPtr == nullptr)
+		if (PendingKeyPtr == nullptr)
 		{
 			continue;
 		}
@@ -241,15 +259,15 @@ void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InV
 		};
 
 		KeyProperty->CopyCompleteValue(PendingKeyPtr, MapKeyPtr);
-		for(auto& Predicate : PredicatesForKey)
+		for (auto& Predicate : PredicatesForKey)
 		{
-			if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
+			if (const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 			{
 				PredicatePtr->Execute(MapProperty->KeyProp, PendingKeyPtr, InParameters);
 			}
 		}
 
-		if(MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
+		if (MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
 		{
 			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate keys", "The modified key already exists in this map."));
 			continue;
@@ -257,15 +275,18 @@ void FAruPredicate_ModifyMapPair::Execute(const FProperty* InProperty, void* InV
 		KeyProperty->CopyCompleteValue(MapKeyPtr, PendingKeyPtr);
 
 		void* MapValuePtr = MapHelper.GetValuePtr(Index);
-		for(auto& Predicate : PredicatesForValue)
+		for (auto& Predicate : PredicatesForValue)
 		{
-			if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
+			if (const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 			{
 				PredicatePtr->Execute(MapProperty->ValueProp, MapValuePtr, InParameters);
 			}
 		}
-		
+
+		bExecutedSuccessfully = true;
 		MapHelper.Rehash();
 	}
+
+	return bExecutedSuccessfully;
 }
 #undef LOCTEXT_NAMESPACE

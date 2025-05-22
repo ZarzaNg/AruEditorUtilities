@@ -1,21 +1,26 @@
 ﻿#include "AssetPredicates/AruPredicate_PathToProperty.h"
 #include "AruFunctionLibrary.h"
 
-void FAruPredicate_PathToProperty::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruPredicate_PathToProperty::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
-	if(PathToProperty.IsEmpty() || InValue == nullptr || !Predicate.IsValid())
+	if (PathToProperty.IsEmpty() || InValue == nullptr || !Predicate.IsValid())
 	{
-		return;
+		return false;
 	}
-	
+
 	FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(InProperty, InValue, PathToProperty);
-	if(!PropertyContext.IsValid())
+	if (!PropertyContext.IsValid())
 	{
-		return;
+		return false;
 	}
-	
-	if(const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
+
+	bool bExecutedSuccessfully = false;
+	if (const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 	{
-		PredicatePtr->Execute(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue(), InParameters);
+		bExecutedSuccessfully |= PredicatePtr->Execute(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue(), InParameters);
 	}
+	return bExecutedSuccessfully;
 }

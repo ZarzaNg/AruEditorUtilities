@@ -14,5 +14,6 @@ protected:
 	TInstancedStruct<FAruPredicate> Predicate;
 public:
 	virtual ~FAruPredicate_PathToProperty() override {};
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };

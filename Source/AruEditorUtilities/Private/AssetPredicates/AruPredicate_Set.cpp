@@ -1,29 +1,33 @@
 ﻿#include "AssetPredicates/AruPredicate_Set.h"
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
-void FAruPredicate_AddSetElement::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+
+bool FAruPredicate_AddSetElement::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
-	if(SetProperty == nullptr)
+	if (SetProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
-	if(Predicates.Num() == 0)
+	if (Predicates.Num() == 0)
 	{
-		return;
+		return false;
 	}
-	
+
 	FProperty* ElementProperty = SetProperty->ElementProp;
-	if(ElementProperty == nullptr)
+	if (ElementProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	void* PendingElementPtr = FMemory::Malloc(ElementProperty->GetSize());
-	if(PendingElementPtr == nullptr)
+	if (PendingElementPtr == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	ON_SCOPE_EXIT
@@ -31,66 +35,77 @@ void FAruPredicate_AddSetElement::Execute(const FProperty* InProperty, void* InV
 		ElementProperty->DestroyValue(PendingElementPtr);
 		FMemory::Free(PendingElementPtr);
 	};
-	
+
+	bool bExecutedSuccessfully = false;
 	ElementProperty->InitializeValue(PendingElementPtr);
-	for(auto& Predicate : Predicates)
+	for (auto& Predicate : Predicates)
 	{
 		const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>();
-		if(PredicatePtr == nullptr)
+		if (PredicatePtr == nullptr)
 		{
 			continue;
 		}
-		
-		PredicatePtr->Execute(ElementProperty, PendingElementPtr, InParameters);
+
+		bExecutedSuccessfully |= PredicatePtr->Execute(ElementProperty, PendingElementPtr, InParameters);
 	}
-	
+
+	if (bExecutedSuccessfully == false && PendingElementPtr == nullptr)
+	{
+		// TODO: Add Log.
+		return false;
+	}
+
 	FScriptSetHelper SetHelper(SetProperty, InValue);
-	if(SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
+	if (SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate values", "The value pending to add already exists in this set."));
-		return;
+		return false;
 	}
-	
-	int32 NewElementIndex = SetHelper.AddDefaultValue_Invalid_NeedsRehash();
+
+	const int32 NewElementIndex = SetHelper.AddDefaultValue_Invalid_NeedsRehash();
 	ON_SCOPE_EXIT
 	{
 		SetHelper.Rehash();
 	};
-	
+
 	void* NewElementPtr = SetHelper.GetElementPtr(NewElementIndex);
-	if(NewElementPtr == nullptr)
+	if (NewElementPtr == nullptr)
 	{
 		SetHelper.RemoveAt(NewElementIndex);
-		return;
+		return false;
 	}
 
 	ElementProperty->CopyCompleteValue(NewElementPtr, PendingElementPtr);
+	return true;
 }
 
-void FAruPredicate_RemoveSetValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruPredicate_RemoveSetValue::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
-	if(SetProperty == nullptr)
+	if (SetProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
-	if(Filters.Num() == 0)
+	if (Filters.Num() == 0)
 	{
-		return;
+		return false;
 	}
-	
+
 	auto ShouldRemove = [&](const void* ValuePtr)
 	{
-		for(const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
+		for (const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
 		{
 			const FAruFilter* Filter = FilterStruct.GetPtr<FAruFilter>();
-			if(Filter == nullptr)
+			if (Filter == nullptr)
 			{
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(SetProperty->ElementProp, ValuePtr, InParameters))
+			if (!Filter->IsConditionMet(SetProperty->ElementProp, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -100,50 +115,55 @@ void FAruPredicate_RemoveSetValue::Execute(const FProperty* InProperty, void* In
 
 	TArray<int32> PendingRemove;
 	FScriptSetHelper SetHelper{SetProperty, InValue};
-	for(int32 Index = 0; Index < SetHelper.Num(); ++Index)  
+	for (int32 Index = 0; Index < SetHelper.Num(); ++Index)
 	{
-		if(ShouldRemove(SetHelper.GetElementPtr(Index)))
+		if (ShouldRemove(SetHelper.GetElementPtr(Index)))
 		{
 			PendingRemove.Add(Index);
 		}
 	}
 
-	for(int32& Index : PendingRemove)
+	for (int32& Index : PendingRemove)
 	{
 		SetHelper.RemoveAt(Index);
 	}
+
+	return PendingRemove.Num() > 0;
 }
 
-void FAruPredicate_ModifySetValue::Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruPredicate_ModifySetValue::Execute(
+	const FProperty* InProperty,
+	void* InValue,
+	const FInstancedPropertyBag& InParameters) const
 {
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
-	if(SetProperty == nullptr)
+	if (SetProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	const FProperty* ElementProperty = SetProperty->ElementProp;
-	if(ElementProperty == nullptr)
+	if (ElementProperty == nullptr)
 	{
-		return;
+		return false;
 	}
 
-	if(Filters.Num() == 0)
+	if (Filters.Num() == 0)
 	{
-		return;
+		return false;
 	}
-	
+
 	auto ShouldModify = [&](const void* ValuePtr)
 	{
-		for(const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
+		for (const TInstancedStruct<FAruFilter>& FilterStruct : Filters)
 		{
 			const FAruFilter* Filter = FilterStruct.GetPtr<FAruFilter>();
-			if(Filter == nullptr)
+			if (Filter == nullptr)
 			{
 				continue;
 			}
 
-			if(!Filter->IsConditionMet(SetProperty->ElementProp, ValuePtr, InParameters))
+			if (!Filter->IsConditionMet(SetProperty->ElementProp, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -151,41 +171,42 @@ void FAruPredicate_ModifySetValue::Execute(const FProperty* InProperty, void* In
 		return true;
 	};
 
+	bool bExecutedSuccessfully = false;
 	FScriptSetHelper SetHelper{SetProperty, InValue};
-	for(int32 Index = 0; Index < SetHelper.Num(); ++Index)  
+	for (int32 Index = 0; Index < SetHelper.Num(); ++Index)
 	{
 		void* ElementPtr = SetHelper.GetElementPtr(Index);
-		if(!ShouldModify(ElementPtr))
+		if (!ShouldModify(ElementPtr))
 		{
 			continue;
 		}
 
 		void* PendingElementPtr = FMemory::Malloc(ElementProperty->GetSize());
-		if(PendingElementPtr == nullptr)
+		if (PendingElementPtr == nullptr)
 		{
-			return;
+			return false;
 		}
-		
+
 		ON_SCOPE_EXIT
 		{
 			ElementProperty->DestroyValue(PendingElementPtr);
 			FMemory::Free(PendingElementPtr);
 		};
-		
+
 		ElementProperty->CopyCompleteValue(PendingElementPtr, ElementPtr);
 
-		for(const TInstancedStruct<FAruPredicate>& PredicateStruct : Predicates)
+		for (const TInstancedStruct<FAruPredicate>& PredicateStruct : Predicates)
 		{
 			const FAruPredicate* Predicate = PredicateStruct.GetPtr<FAruPredicate>();
-			if(Predicate == nullptr)
+			if (Predicate == nullptr)
 			{
 				continue;
 			}
 
 			Predicate->Execute(SetProperty->ElementProp, PendingElementPtr, InParameters);
 		}
-		
-		if(SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
+
+		if (SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
 		{
 			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate values", "The modified value already exists in this set."));
 			continue;
@@ -193,7 +214,11 @@ void FAruPredicate_ModifySetValue::Execute(const FProperty* InProperty, void* In
 
 		ElementProperty->CopyCompleteValue(ElementPtr, PendingElementPtr);
 		SetHelper.Rehash();
+
+		bExecutedSuccessfully = true;
 	}
+
+	return bExecutedSuccessfully;
 }
 
 #undef LOCTEXT_NAMESPACE

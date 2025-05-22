@@ -62,7 +62,7 @@ public:
 		const void* InPropertyValue,
 		const TArrayView<FString> PropertyChain);
 	
-	static void ProcessContainerValues(
+	static bool ProcessContainerValues(
 		FProperty* PropertyPtr,
 		void* ValuePtr,
 		const FAruProcessingParameters& InParameters);

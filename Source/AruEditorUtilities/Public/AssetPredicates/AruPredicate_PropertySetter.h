@@ -57,38 +57,38 @@ protected:
 	}
 	
 	template<typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
-	void SetPropertyValue(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+	bool SetPropertyValue(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 	{
 		if(InProperty == nullptr || InValue == nullptr)
 		{
-			return;
+			return false;
 		}
 
 		const T* SubProperty = CastField<T>(InProperty);
 		if(SubProperty == nullptr)
 		{
-			return;
+			return false;
 		}
 
 		TOptional<const void*> OptionalValue = GetNewValueBySourceType<T>(InParameters);
 		if(!OptionalValue.IsSet())
 		{
-			return;
+			return false;
 		}
 
 		const void* PendingValue = OptionalValue.GetValue();
 		if(PendingValue == nullptr)
 		{
-			return;
+			return false;
 		}
 	
 		SubProperty->CopyCompleteValue(InValue, PendingValue);
+		return true;
 	}
 private:
 	TOptional<const void*> GetValueFromStructProperty(const FFieldClass* SourceProperty, const UStruct* SourceType = nullptr) const;
 	TOptional<const void*> GetValueFromObjectAsset(const FFieldClass* SourceProperty, const UStruct* SourceType = nullptr) const;
 	TOptional<const void*> GetValueFromDataTable(const FFieldClass* SourceProperty, const FInstancedPropertyBag& InParameters, const UStruct* SourceType = nullptr) const;
-
 	
 	static bool IsCompatibleType(
 		const FProperty* TargetProperty,
@@ -116,7 +116,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetBoolValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Float Value")
@@ -129,7 +130,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetFloatValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Integer Value")
@@ -142,7 +144,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetIntegerValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set String Value")
@@ -155,7 +158,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetStringValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Text Value")
@@ -168,7 +172,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetTextValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Name Value")
@@ -181,7 +186,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetNameValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Enum Value")
@@ -195,7 +201,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetEnumValue() override{}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Struct Value")
@@ -208,7 +215,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetStructValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Object Value")
@@ -221,7 +229,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetObjectValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Instanced Struct Value")
@@ -234,7 +243,8 @@ protected:
 public:
 	virtual ~FAruPredicate_SetInstancedStructValue() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override {return StaticStruct();}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
 
 #undef LOCTEXT_NAMESPACE

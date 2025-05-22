@@ -22,7 +22,21 @@ struct FAruPredicate
 	GENERATED_BODY()
 public:
 	virtual ~FAruPredicate(){};
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const {};
+	
+	/**
+	 * Executes an operation on a target property using provided parameters.
+	 * 
+	 * @param InProperty        The meta-data/description of the property being operated on. 
+	 *                          Contains type information and property attributes.
+	 * @param InValue           Pointer to the raw memory address of the property instance 
+	 *                          being modified. The actual data type matches InProperty's type.
+	 * @param InParameters      Container holding runtime parameters/operators for the operation,
+	 *                          including any global context.
+	 * 
+	 * @return                  True if the property value was modified during execution,
+	 *                          false if no changes were made or the operation failed.
+	 */
+	virtual bool Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const {return true;}
 };
 
 USTRUCT(BlueprintType)
@@ -30,7 +44,7 @@ struct FAruActionDefinition
 {
 	GENERATED_BODY()
 public:
-	void Invoke(FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const;
+	bool Invoke(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Aru Editor Utilities", meta=(ExcludeBaseStruct))

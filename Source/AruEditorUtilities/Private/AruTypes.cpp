@@ -1,22 +1,24 @@
 ﻿#include "AruTypes.h"
 
-void FAruActionDefinition::Invoke(FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
+bool FAruActionDefinition::Invoke(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {
-	if(InProperty == nullptr || InValue == nullptr)
+	if (InProperty == nullptr || InValue == nullptr)
 	{
-		return;
+		return false;
 	}
 
-	for(auto& Condition : ForEachCondition())
+	for (auto& Condition : ForEachCondition())
 	{
-		if(!Condition.IsConditionMet(InProperty, InValue, InParameters))
+		if (!Condition.IsConditionMet(InProperty, InValue, InParameters))
 		{
-			return;
+			return false;
 		}
 	}
 
-	for(auto& Predicate : ForEachPredicates())
+	bool bExecutedSuccessfully = false;
+	for (auto& Predicate : ForEachPredicates())
 	{
-		Predicate.Execute(InProperty, InValue, InParameters);
+		bExecutedSuccessfully |= Predicate.Execute(InProperty, InValue, InParameters);
 	}
+	return bExecutedSuccessfully;
 }

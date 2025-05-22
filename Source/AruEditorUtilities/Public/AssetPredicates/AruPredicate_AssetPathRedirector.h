@@ -11,5 +11,6 @@ public:
 	TMap<FString, FString> ReplacementMap;
 	
 	virtual ~FAruPredicate_AssetPathRedirector() override {}
-	virtual void Execute(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const override;
+	virtual bool Execute(const FProperty* InProperty, void* InValue,
+	                     const FInstancedPropertyBag& InParameters) const override;
 };
