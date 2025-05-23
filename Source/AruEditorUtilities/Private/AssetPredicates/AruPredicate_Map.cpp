@@ -47,6 +47,12 @@ bool FAruPredicate_AddMapPair::Execute(
 		}
 	}
 
+	if (bExecutedSuccessfully == false)
+	{
+		// TODO: Add Log.
+		return false;
+	}
+
 	FScriptMapHelper MapHelper{MapProperty, InValue};
 	if (MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
 	{

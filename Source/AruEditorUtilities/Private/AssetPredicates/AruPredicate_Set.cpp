@@ -49,7 +49,7 @@ bool FAruPredicate_AddSetElement::Execute(
 		bExecutedSuccessfully |= PredicatePtr->Execute(ElementProperty, PendingElementPtr, InParameters);
 	}
 
-	if (bExecutedSuccessfully == false && PendingElementPtr == nullptr)
+	if (bExecutedSuccessfully == false)
 	{
 		// TODO: Add Log.
 		return false;
