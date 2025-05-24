@@ -2,14 +2,6 @@
 #include "AruTypes.h"
 #include "AruFilter_ByName.generated.h"
 
-
-UENUM(BlueprintType)
-enum class EAruNameCompareOp : uint8
-{
-	MatchAny,
-	MatchAll
-};
-
 USTRUCT(BlueprintType, DisplayName="Does Property Name Match")
 struct FAruFilter_ByName : public FAruFilter
 {

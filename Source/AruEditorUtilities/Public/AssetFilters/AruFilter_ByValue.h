@@ -3,29 +3,6 @@
 #include "GameplayTagContainer.h"
 #include "AruFilter_ByValue.generated.h"
 
-UENUM(BlueprintType)
-enum class EAruNumericCompareOp : uint8
-{
-	Equip,
-	NotEqual,
-	GreaterThan,
-	LessThan
-};
-
-UENUM(BlueprintType)
-enum class EAruBooleanCompareOp : uint8
-{
-	Is,
-	Not
-};
-
-UENUM(BlueprintType)
-enum class EAruContainerCompareOp : uint8
-{
-	HasAny,
-	HasAll
-};
-
 USTRUCT(BlueprintType, DisplayName="Is Numeric Value Eligible")
 struct FAruFilter_ByNumericValue : public FAruFilter
 {

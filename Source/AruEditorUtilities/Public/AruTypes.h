@@ -110,4 +110,32 @@ public:
 	int32 MaxSearchDepth = 5;
 };
 
+UENUM(BlueprintType)
+enum class EAruNumericCompareOp : uint8
+{
+	Equip,
+	NotEqual,
+	GreaterThan,
+	LessThan
+};
 
+UENUM(BlueprintType)
+enum class EAruBooleanCompareOp : uint8
+{
+	Is,
+	Not
+};
+
+UENUM(BlueprintType)
+enum class EAruContainerCompareOp : uint8
+{
+	HasAny,
+	HasAll
+};
+
+UENUM(BlueprintType)
+enum class EAruNameCompareOp : uint8
+{
+	MatchAny,
+	MatchAll
+};
