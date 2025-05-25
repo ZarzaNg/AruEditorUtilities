@@ -1,5 +1,8 @@
 ﻿#include "AssetPredicates/AruPredicate_PropertySetter.h"
 
+#include "AruFunctionLibrary.h"
+#include "UObject/PropertyAccessUtil.h"
+
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 bool FAruPredicate_PropertySetter::IsCompatibleType(

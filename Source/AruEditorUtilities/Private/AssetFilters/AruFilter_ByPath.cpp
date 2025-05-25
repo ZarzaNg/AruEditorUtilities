@@ -27,15 +27,15 @@ bool FAruFilter_ByObjectPath::IsConditionMet(const FProperty* InProperty, const 
 		{
 			return UAruFunctionLibrary::ResolveParameterizedString(InParameters, InStringValue);
 		});
-	
+
 	const FString AssetPath = ObjectPtr->GetPathName();
-	if(AssetPath.IsEmpty())
+	if (AssetPath.IsEmpty())
 	{
 		return false;
 	}
 
 	bool Result = ResolvedMatchingContexts.Num() > 0;
-	for(auto& Context : ResolvedMatchingContexts)
+	for (auto& Context : ResolvedMatchingContexts)
 	{
 		Result &= AssetPath.Contains(Context);
 	}

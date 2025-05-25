@@ -13,7 +13,7 @@ bool FAruPredicate_PathToProperty::Execute(
 
 	TArray<FString> PropertyChain;
 	PathToProperty.ParseIntoArray(PropertyChain, TEXT("."), true);
-	for(auto& Element : PropertyChain)
+	for (auto& Element : PropertyChain)
 	{
 		Element = UAruFunctionLibrary::ResolveParameterizedString(InParameters, Element);
 	}

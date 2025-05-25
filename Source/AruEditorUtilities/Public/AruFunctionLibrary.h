@@ -11,8 +11,8 @@ struct FAruPropertyContext
 	FProperty* PropertyPtr		= nullptr;
 	TOptional<void*> ValuePtr	= {};
 
-	FAruPropertyContext() : PropertyPtr(nullptr), ValuePtr({}) {}
-	FAruPropertyContext(FProperty* InPropertyPtr, void* InValuePtr) : PropertyPtr(InPropertyPtr), ValuePtr(TOptional<void*>{InValuePtr}) {} 
+	FAruPropertyContext() : PropertyPtr (nullptr), ValuePtr ({}) {}
+	FAruPropertyContext(FProperty* InPropertyPtr, void* InValuePtr) : PropertyPtr (InPropertyPtr), ValuePtr (TOptional<void*>{InValuePtr}) {}
 
 	FORCEINLINE bool IsValid() const { return PropertyPtr != nullptr && ValuePtr.IsSet(); }
 };
@@ -40,6 +40,7 @@ UCLASS()
 class ARUEDITORUTILITIES_API UAruFunctionLibrary : public UObject
 {
 	GENERATED_BODY()
+
 public:
 	UFUNCTION(BlueprintCallable, CallInEditor)
 	static void ProcessSelectedAssets(const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs);
@@ -61,7 +62,7 @@ public:
 		const FProperty* InProperty,
 		const void* InPropertyValue,
 		const TArrayView<FString> PropertyChain);
-	
+
 	static bool ProcessContainerValues(
 		FProperty* PropertyPtr,
 		void* ValuePtr,
