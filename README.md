@@ -98,14 +98,17 @@ struct FMyCustomAction : public FAruPredicate
     GENERATED_BODY()
 public:
     virtual ~FMyCustomAction() override {};
-    virtual void Execute(const FProperty* InProperty, void* InValue) const override
+    virtual bool Execute(const FProperty* InProperty, void* InValue) const override
     {
         // Example: Double integer properties
         if (FIntProperty* IntProp = CastField<FIntProperty>(InProperty))
         {
             int32 Value = IntProp->GetPropertyValue(InValue);
             IntProp->SetPropertyValue(InValue, Value * 2);
+            // Return true if the operation is successful.
+            return true;
         }
+        return false;
     }
 };
 ```
