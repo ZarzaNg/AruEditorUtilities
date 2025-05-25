@@ -66,4 +66,6 @@ public:
 		FProperty* PropertyPtr,
 		void* ValuePtr,
 		const FAruProcessingParameters& InParameters);
+
+	static FString ResolveParameterizedString(const FInstancedPropertyBag& InParameters, const FString& SourceString);
 };

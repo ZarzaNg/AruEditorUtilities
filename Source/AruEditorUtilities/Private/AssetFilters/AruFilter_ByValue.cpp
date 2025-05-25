@@ -1,5 +1,7 @@
 ﻿#include "AssetFilters/AruFilter_ByValue.h"
 
+#include "AruFunctionLibrary.h"
+
 bool FAruFilter_ByNumericValue::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr || InValue == nullptr)
@@ -149,13 +151,14 @@ bool FAruFilter_ByString::IsConditionMet(const FProperty* InProperty, const void
 	}
 
 	ESearchCase::Type SearchCase = bCaseSensitive? ESearchCase::CaseSensitive : ESearchCase::IgnoreCase;
+	const FString&& ResolvedConditionValue = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ConditionValue);
 	if(CompareOp == EAruContainerCompareOp::HasAll)
 	{
-		return InStringValue->Equals(ConditionValue, SearchCase) ^ bInverseCondition;
+		return InStringValue->Equals(ResolvedConditionValue, SearchCase) ^ bInverseCondition;
 	}
 	else if(CompareOp == EAruContainerCompareOp::HasAny)
 	{
-		return InStringValue->Contains(ConditionValue, SearchCase) ^ bInverseCondition;
+		return InStringValue->Contains(ResolvedConditionValue, SearchCase) ^ bInverseCondition;
 	}
 
 	return bInverseCondition;
@@ -182,13 +185,14 @@ bool FAruFilter_ByText::IsConditionMet(const FProperty* InProperty, const void* 
 
 	const FString& InStringValue = InTextValue->ToString();
 	ESearchCase::Type SearchCase = bCaseSensitive? ESearchCase::CaseSensitive : ESearchCase::IgnoreCase;
+	const FString&& ResolvedConditionValue = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ConditionValue);
 	if(CompareOp == EAruContainerCompareOp::HasAll)
 	{
-		return InStringValue.Equals(ConditionValue, SearchCase) ^ bInverseCondition;
+		return InStringValue.Equals(ResolvedConditionValue, SearchCase) ^ bInverseCondition;
 	}
 	else if(CompareOp == EAruContainerCompareOp::HasAny)
 	{
-		return InStringValue.Contains(ConditionValue, SearchCase) ^ bInverseCondition;
+		return InStringValue.Contains(ResolvedConditionValue, SearchCase) ^ bInverseCondition;
 	}
 
 	return bInverseCondition;

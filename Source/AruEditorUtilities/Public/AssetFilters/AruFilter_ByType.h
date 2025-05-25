@@ -2,7 +2,7 @@
 #include "AruTypes.h"
 #include "AruFilter_ByType.generated.h"
 
-USTRUCT(BlueprintType, DisplayName="Is Object Type Compatible")
+USTRUCT(BlueprintType, DisplayName="Check Object Type")
 struct FAruFilter_ByObjectType : public FAruFilter
 {
 	GENERATED_BODY()
@@ -14,7 +14,7 @@ protected:
 	TObjectPtr<UClass> ObjectType = nullptr;
 };
 
-USTRUCT(BlueprintType, DisplayName="Is Struct Type Compatible")
+USTRUCT(BlueprintType, DisplayName="Check Struct Type")
 struct FAruFilter_ByStructType : public FAruFilter
 {
 	GENERATED_BODY()
@@ -26,7 +26,7 @@ protected:
 	TObjectPtr<UScriptStruct> StructType = nullptr;
 };
 
-USTRUCT(BlueprintType, DisplayName="Is Instanced Struct Type Compatible")
+USTRUCT(BlueprintType, DisplayName="Check Instanced Struct Type")
 struct FAruFilter_ByInstancedStructType : public FAruFilter
 {
 	GENERATED_BODY()

@@ -49,7 +49,7 @@ protected:
 		switch (ValueSource)
 		{
 		case EAruValueSource::Value:		return GetValueFromStructProperty(T::StaticClass(), TypeToCheck);
-		case EAruValueSource::Object:		return GetValueFromObjectAsset(T::StaticClass(), TypeToCheck);
+		case EAruValueSource::Object:		return GetValueFromObjectAsset(T::StaticClass(), InParameters, TypeToCheck);
 		case EAruValueSource::DataTable:	return GetValueFromDataTable(T::StaticClass(), InParameters, TypeToCheck);
 		case EAruValueSource::Parameters:	return {};
 		}
@@ -87,7 +87,7 @@ protected:
 	}
 private:
 	TOptional<const void*> GetValueFromStructProperty(const FFieldClass* SourceProperty, const UStruct* SourceType = nullptr) const;
-	TOptional<const void*> GetValueFromObjectAsset(const FFieldClass* SourceProperty, const UStruct* SourceType = nullptr) const;
+	TOptional<const void*> GetValueFromObjectAsset(const FFieldClass* SourceProperty, const FInstancedPropertyBag& InParameters, const UStruct* SourceType = nullptr) const;
 	TOptional<const void*> GetValueFromDataTable(const FFieldClass* SourceProperty, const FInstancedPropertyBag& InParameters, const UStruct* SourceType = nullptr) const;
 	
 	static bool IsCompatibleType(

@@ -1,5 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_AssetPathRedirector.h"
 
+#include "AruFunctionLibrary.h"
+
 bool FAruPredicate_AssetPathRedirector::Execute(
 	const FProperty* InProperty,
 	void* InValue,
@@ -26,23 +28,11 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 	Algo::Transform(
 		ReplacementMap, ResolvedReplacementMap, [&InParameters](const TTuple<FString, FString>& InTuple)
 		{
-			auto ResolveParameterizedString = [&InParameters](const FString& SourceString)
+			return TTuple<FString, FString>
 			{
-				if (SourceString.IsEmpty() || SourceString[0] != '@')
-				{
-					return SourceString;
-				}
-
-				TValueOrError<FString, EPropertyBagResult> SearchStringResult = InParameters.GetValueString(FName{SourceString.RightChop(1)});
-				if (SearchStringResult.HasValue())
-				{
-					return SearchStringResult.GetValue();
-				}
-
-				return SourceString;
+				UAruFunctionLibrary::ResolveParameterizedString(InParameters, InTuple.Key),
+				UAruFunctionLibrary::ResolveParameterizedString(InParameters, InTuple.Value)
 			};
-
-			return TTuple<FString, FString>{ResolveParameterizedString(InTuple.Key), ResolveParameterizedString(InTuple.Value)};
 		});
 
 	TArray<FString> SortedKeys;

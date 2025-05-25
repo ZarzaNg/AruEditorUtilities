@@ -3,7 +3,7 @@
 #include "GameplayTagContainer.h"
 #include "AruFilter_ByValue.generated.h"
 
-USTRUCT(BlueprintType, DisplayName="Is Numeric Value Eligible")
+USTRUCT(BlueprintType, DisplayName="Check Numeric Value")
 struct FAruFilter_ByNumericValue : public FAruFilter
 {
 	GENERATED_BODY()
@@ -18,7 +18,7 @@ protected:
 	EAruNumericCompareOp CompareOp = EAruNumericCompareOp::Equip;
 };
 
-USTRUCT(BlueprintType, DisplayName="Is Boolean Value Eligible")
+USTRUCT(BlueprintType, DisplayName="Check Boolean Value")
 struct FAruFilter_ByBoolean : public FAruFilter
 {
 	GENERATED_BODY()
@@ -33,7 +33,7 @@ protected:
 	EAruBooleanCompareOp CompareOp = EAruBooleanCompareOp::Is;
 };
 
-USTRUCT(BlueprintType, DisplayName="Is Object Value Eligible")
+USTRUCT(BlueprintType, DisplayName="Check Object Value")
 struct FAruFilter_ByObject : public FAruFilter
 {
 	GENERATED_BODY()
@@ -48,7 +48,7 @@ protected:
 	EAruBooleanCompareOp CompareOp = EAruBooleanCompareOp::Is;
 };
 
-USTRUCT(BlueprintType, DisplayName="Is Enumeration Value Eligible")
+USTRUCT(BlueprintType, DisplayName="Check Enumeration Value")
 struct FAruFilter_ByEnum : public FAruFilter
 {
 	GENERATED_BODY()
@@ -63,7 +63,7 @@ protected:
 	EAruBooleanCompareOp CompareOp = EAruBooleanCompareOp::Is;
 };
 
-USTRUCT(BlueprintType, DisplayName="Is String Value Eligible")
+USTRUCT(BlueprintType, DisplayName="Check String Value")
 struct FAruFilter_ByString : public FAruFilter
 {
 	GENERATED_BODY()
@@ -81,7 +81,7 @@ protected:
 	bool bCaseSensitive = false;
 };
 
-USTRUCT(BlueprintType, DisplayName="Is Text Value Eligible")
+USTRUCT(BlueprintType, DisplayName="Check Text Value")
 struct FAruFilter_ByText : public FAruFilter
 {
 	GENERATED_BODY()
@@ -99,7 +99,7 @@ protected:
 	bool bCaseSensitive = false;
 };
 
-USTRUCT(BlueprintType, DisplayName="Are GameplayTags Eligible")
+USTRUCT(BlueprintType, DisplayName="Check GameplayTags")
 struct FAruFilter_ByGameplayTagContainer : public FAruFilter
 {
 	GENERATED_BODY()

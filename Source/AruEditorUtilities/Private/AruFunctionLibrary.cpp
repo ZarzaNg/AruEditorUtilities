@@ -209,6 +209,22 @@ bool UAruFunctionLibrary::ProcessContainerValues(
 	return bExecutedSuccessfully;
 }
 
+FString UAruFunctionLibrary::ResolveParameterizedString(const FInstancedPropertyBag& InParameters, const FString& SourceString)
+{
+	if (SourceString.IsEmpty() || SourceString[0] != '@')
+	{
+		return SourceString;
+	}
+
+	TValueOrError<FString, EPropertyBagResult> SearchStringResult = InParameters.GetValueString(FName{SourceString.RightChop(1)});
+	if (SearchStringResult.HasValue())
+	{
+		return SearchStringResult.GetValue();
+	}
+
+	return SourceString;
+}
+
 FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
 	const FProperty* InProperty,
 	const void* InPropertyValue,

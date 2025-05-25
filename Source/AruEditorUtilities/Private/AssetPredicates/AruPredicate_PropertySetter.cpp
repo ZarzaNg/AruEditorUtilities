@@ -107,6 +107,7 @@ TOptional<const void*> FAruPredicate_PropertySetter::GetValueFromStructProperty(
 
 TOptional<const void*> FAruPredicate_PropertySetter::GetValueFromObjectAsset(
 	const FFieldClass* SourceProperty,
+	const FInstancedPropertyBag& InParameters,
 	const UStruct* SourceType) const
 {
 	if (PathToProperty.IsEmpty() || Object == nullptr)
@@ -123,7 +124,15 @@ TOptional<const void*> FAruPredicate_PropertySetter::GetValueFromObjectAsset(
 		NativeObject = NativeClass->GetDefaultObject();
 	}
 
-	auto&& PropertyContext = UAruFunctionLibrary::FindPropertyByPath(NativeClass, NativeObject, PathToProperty);
+	TArray<FString> PropertyChain;
+	PathToProperty.ParseIntoArray(PropertyChain, TEXT("."), true);
+	for(auto& Element : PropertyChain)
+	{
+		Element = UAruFunctionLibrary::ResolveParameterizedString(InParameters, Element);
+	}
+	const FString&& ResolvedPath = FString::Join(PropertyChain, TEXT("."));
+
+	auto&& PropertyContext = UAruFunctionLibrary::FindPropertyByPath(NativeClass, NativeObject, ResolvedPath);
 	if (!PropertyContext.IsValid())
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
@@ -161,31 +170,14 @@ TOptional<const void*> FAruPredicate_PropertySetter::GetValueFromDataTable(
 		return {};
 	}
 
-	FName InternalRowName{RowName};
-	if (RowName[0] == '@')
-	{
-		TValueOrError<FName, EPropertyBagResult> SearchNameResult = InParameters.GetValueName(FName{RowName.RightChop(1)});
-		if (SearchNameResult.HasValue())
-		{
-			InternalRowName = SearchNameResult.GetValue();
-		}
-		else
-		{
-			TValueOrError<FString, EPropertyBagResult> SearchStringResult = InParameters.GetValueString(FName{RowName.RightChop(1)});
-			if (SearchStringResult.HasValue())
-			{
-				InternalRowName = FName{SearchStringResult.GetValue()};
-			}
-		}
-	}
-
-	uint8* const* RowStructPtr = DataTable->GetRowMap().Find(FName{InternalRowName});
+	const FString&& ResolvedRowName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, RowName);
+	uint8* const* RowStructPtr = DataTable->GetRowMap().Find(FName{ResolvedRowName});
 	if (RowStructPtr == nullptr)
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT("Find value failed", "Can't find row: '{0}' in DataTable: '{1}'."),
-				FText::FromName(InternalRowName),
+				FText::FromString(ResolvedRowName),
 				FText::FromName(DataTable.GetFName())));
 		return {};
 	}
@@ -196,7 +188,15 @@ TOptional<const void*> FAruPredicate_PropertySetter::GetValueFromDataTable(
 		return {};
 	}
 
-	auto&& PropertyContext = UAruFunctionLibrary::FindPropertyByPath(DataTable->RowStruct, RowStruct, PathToProperty);
+	TArray<FString> PropertyChain;
+	PathToProperty.ParseIntoArray(PropertyChain, TEXT("."), true);
+	for(auto& Element : PropertyChain)
+	{
+		Element = UAruFunctionLibrary::ResolveParameterizedString(InParameters, Element);
+	}
+	const FString&& ResolvedPath = FString::Join(PropertyChain, TEXT("."));
+
+	auto&& PropertyContext = UAruFunctionLibrary::FindPropertyByPath(DataTable->RowStruct, RowStruct, ResolvedPath);
 	if (!PropertyContext.IsValid())
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
@@ -240,7 +240,8 @@ bool FAruPredicate_SetBoolValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<bool, EPropertyBagResult> ParameterValue = InParameters.GetValueBool(FName{ParameterName});
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<bool, EPropertyBagResult> ParameterValue = InParameters.GetValueBool(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -276,7 +277,8 @@ bool FAruPredicate_SetFloatValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<double, EPropertyBagResult> ParameterValue = InParameters.GetValueDouble(FName{ParameterName});
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<double, EPropertyBagResult> ParameterValue = InParameters.GetValueDouble(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -312,7 +314,8 @@ bool FAruPredicate_SetIntegerValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<int64, EPropertyBagResult> ParameterValue = InParameters.GetValueInt64(FName{ParameterName});
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<int64, EPropertyBagResult> ParameterValue = InParameters.GetValueInt64(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -343,7 +346,8 @@ bool FAruPredicate_SetStringValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<FString, EPropertyBagResult> ParameterValue = InParameters.GetValueString(FName{ParameterName});
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<FString, EPropertyBagResult> ParameterValue = InParameters.GetValueString(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -374,7 +378,8 @@ bool FAruPredicate_SetTextValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<FText, EPropertyBagResult> ParameterValue = InParameters.GetValueText(FName{ParameterName});
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<FText, EPropertyBagResult> ParameterValue = InParameters.GetValueText(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -425,7 +430,8 @@ bool FAruPredicate_SetNameValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<FName, EPropertyBagResult> ParameterValue = InParameters.GetValueName(FName{ParameterName});
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<FName, EPropertyBagResult> ParameterValue = InParameters.GetValueName(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -468,7 +474,8 @@ bool FAruPredicate_SetEnumValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<uint8, EPropertyBagResult> ParameterValue = InParameters.GetValueEnum(FName{ParameterName}, EnumType);
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<uint8, EPropertyBagResult> ParameterValue = InParameters.GetValueEnum(FName{ResolvedParameterName}, EnumType);
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -531,7 +538,8 @@ bool FAruPredicate_SetObjectValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<UObject*, EPropertyBagResult> ParameterValue = InParameters.GetValueObject(FName{ParameterName});
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<UObject*, EPropertyBagResult> ParameterValue = InParameters.GetValueObject(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -545,7 +553,7 @@ bool FAruPredicate_SetObjectValue::Execute(
 		}
 
 		const UClass* ObjectClass = ObjectPtr->GetClass();
-		if (ensure(ObjectClass == nullptr))
+		if (!ensure(ObjectClass != nullptr))
 		{
 			return false;
 		}
@@ -593,7 +601,8 @@ bool FAruPredicate_SetStructValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<FStructView, EPropertyBagResult> ParameterValue = InParameters.GetValueStruct(FName{ParameterName}, SourceStructType);
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<FStructView, EPropertyBagResult> ParameterValue = InParameters.GetValueStruct(FName{ResolvedParameterName}, SourceStructType);
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.
@@ -669,7 +678,8 @@ bool FAruPredicate_SetInstancedStructValue::Execute(
 
 	if (ValueSource == EAruValueSource::Parameters)
 	{
-		TValueOrError<FStructView, EPropertyBagResult> ParameterValue = InParameters.GetValueStruct(FName{ParameterName}, FInstancedStruct::StaticStruct());
+		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
+		TValueOrError<FStructView, EPropertyBagResult> ParameterValue = InParameters.GetValueStruct(FName{ResolvedParameterName}, FInstancedStruct::StaticStruct());
 		if (!ParameterValue.HasValue())
 		{
 			// TODO: Add log.

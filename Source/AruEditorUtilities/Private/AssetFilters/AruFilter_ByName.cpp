@@ -1,5 +1,7 @@
 ﻿#include "AssetFilters/AruFilter_ByName.h"
 
+#include "AruFunctionLibrary.h"
+
 bool FAruFilter_ByName::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if(InProperty == nullptr)
@@ -7,13 +9,14 @@ bool FAruFilter_ByName::IsConditionMet(const FProperty* InProperty, const void* 
 		return bInverseCondition;
 	}
 
-	if(CompareOp == EAruNameCompareOp::MatchAll)
+	const FString&& ResolvedPropertyName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, PropertyName);
+	if (CompareOp == EAruNameCompareOp::MatchAll)
 	{
-		return (PropertyName == InProperty->GetName() || PropertyName == InProperty->GetDisplayNameText().ToString()) ^ bInverseCondition;
+		return (ResolvedPropertyName == InProperty->GetName() || ResolvedPropertyName == InProperty->GetDisplayNameText().ToString()) ^ bInverseCondition;
 	}
 	else
 	{
-		return (InProperty->GetName().Contains(PropertyName) || InProperty->GetDisplayNameText().ToString().Contains(PropertyName)) ^ bInverseCondition;
+		return (InProperty->GetName().Contains(ResolvedPropertyName) || InProperty->GetDisplayNameText().ToString().Contains(ResolvedPropertyName)) ^ bInverseCondition;
 	}
 }
 
@@ -36,12 +39,13 @@ bool FAruFilter_ByObjectName::IsConditionMet(const FProperty* InProperty, const 
 		return bInverseCondition;
 	}
 
+	const FString&& ResolvedObjectName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ObjectName);
 	if(CompareOp == EAruNameCompareOp::MatchAll)
 	{
-		return (ObjectName == ObjectPtr->GetName()) ^ bInverseCondition;
+		return (ResolvedObjectName == ObjectPtr->GetName()) ^ bInverseCondition;
 	}
 	else
 	{
-		return (ObjectPtr->GetName().Contains(ObjectName)) ^ bInverseCondition;
+		return (ObjectPtr->GetName().Contains(ResolvedObjectName)) ^ bInverseCondition;
 	}
 }

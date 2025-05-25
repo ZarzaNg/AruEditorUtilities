@@ -11,7 +11,15 @@ bool FAruPredicate_PathToProperty::Execute(
 		return false;
 	}
 
-	FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(InProperty, InValue, PathToProperty);
+	TArray<FString> PropertyChain;
+	PathToProperty.ParseIntoArray(PropertyChain, TEXT("."), true);
+	for(auto& Element : PropertyChain)
+	{
+		Element = UAruFunctionLibrary::ResolveParameterizedString(InParameters, Element);
+	}
+	const FString&& ResolvedPath = FString::Join(PropertyChain, TEXT("."));
+
+	FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(InProperty, InValue, ResolvedPath);
 	if (!PropertyContext.IsValid())
 	{
 		return false;

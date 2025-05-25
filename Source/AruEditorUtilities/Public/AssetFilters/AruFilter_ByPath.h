@@ -2,7 +2,7 @@
 #include "AruTypes.h"
 #include "AruFilter_ByPath.generated.h"
 
-USTRUCT(BlueprintType, DisplayName="Does Object Path Match")
+USTRUCT(BlueprintType, DisplayName="Check Object Path")
 struct FAruFilter_ByObjectPath : public FAruFilter
 {
 	GENERATED_BODY()

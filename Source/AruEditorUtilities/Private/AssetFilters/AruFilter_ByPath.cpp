@@ -1,5 +1,7 @@
 ﻿#include "AssetFilters/AruFilter_ByPath.h"
 
+#include "AruFunctionLibrary.h"
+
 bool FAruFilter_ByObjectPath::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if (InProperty == nullptr || InValue == nullptr)
@@ -23,23 +25,7 @@ bool FAruFilter_ByObjectPath::IsConditionMet(const FProperty* InProperty, const 
 	Algo::Transform(
 		MatchingContexts, ResolvedMatchingContexts, [&InParameters](const FString& InStringValue)
 		{
-			auto ResolveParameterizedString = [&InParameters](const FString& SourceString)
-			{
-				if (SourceString.IsEmpty() || SourceString[0] != '@')
-				{
-					return SourceString;
-				}
-
-				TValueOrError<FString, EPropertyBagResult> SearchStringResult = InParameters.GetValueString(FName{SourceString.RightChop(1)});
-				if (SearchStringResult.HasValue())
-				{
-					return SearchStringResult.GetValue();
-				}
-
-				return SourceString;
-			};
-
-			return ResolveParameterizedString(InStringValue);
+			return UAruFunctionLibrary::ResolveParameterizedString(InParameters, InStringValue);
 		});
 	
 	const FString AssetPath = ObjectPtr->GetPathName();
