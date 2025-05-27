@@ -15,6 +15,10 @@ bool FAruPredicate_AddSetElement::Execute(
 
 	if (Predicates.Num() == 0)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT("Execution failed", "{0}: Lack of predicate configuration."),
+				FText::FromString(GetNameSafe(StaticStruct()))));
 		return false;
 	}
 
@@ -51,14 +55,20 @@ bool FAruPredicate_AddSetElement::Execute(
 
 	if (bExecutedSuccessfully == false)
 	{
-		// TODO: Add Log.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT("Execution failed", "{0}: Execution failed."),
+				FText::FromString(GetNameSafe(StaticStruct()))));
 		return false;
 	}
 
 	FScriptSetHelper SetHelper(SetProperty, InValue);
 	if (SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
 	{
-		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate values", "The value pending to add already exists in this set."));
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT("Execution failed", "{0}: The value pending to add already exists in this set."),
+				FText::FromString(GetNameSafe(StaticStruct()))));
 		return false;
 	}
 
@@ -92,6 +102,10 @@ bool FAruPredicate_RemoveSetValue::Execute(
 
 	if (Filters.Num() == 0)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT("Execution failed", "{0}: Lack of filter configuration."),
+				FText::FromString(GetNameSafe(StaticStruct()))));
 		return false;
 	}
 
@@ -150,6 +164,10 @@ bool FAruPredicate_ModifySetValue::Execute(
 
 	if (Filters.Num() == 0)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT("Execution failed", "{0}: Lack of filter configuration."),
+				FText::FromString(GetNameSafe(StaticStruct()))));
 		return false;
 	}
 
@@ -193,8 +211,8 @@ bool FAruPredicate_ModifySetValue::Execute(
 			FMemory::Free(PendingElementPtr);
 		};
 
+		bool bValueChanged = false;
 		ElementProperty->CopyCompleteValue(PendingElementPtr, ElementPtr);
-
 		for (const TInstancedStruct<FAruPredicate>& PredicateStruct : Predicates)
 		{
 			const FAruPredicate* Predicate = PredicateStruct.GetPtr<FAruPredicate>();
@@ -203,19 +221,27 @@ bool FAruPredicate_ModifySetValue::Execute(
 				continue;
 			}
 
-			Predicate->Execute(SetProperty->ElementProp, PendingElementPtr, InParameters);
+			bValueChanged |= Predicate->Execute(SetProperty->ElementProp, PendingElementPtr, InParameters);
+		}
+
+		if(bValueChanged == false)
+		{
+			continue;
 		}
 
 		if (SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
 		{
-			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate values", "The modified value already exists in this set."));
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT("Execution failed", "{0}: The value pending to add already exists in this set."),
+				FText::FromString(GetNameSafe(StaticStruct()))));
 			continue;
 		}
 
 		ElementProperty->CopyCompleteValue(ElementPtr, PendingElementPtr);
 		SetHelper.Rehash();
 
-		bExecutedSuccessfully = true;
+		bExecutedSuccessfully |= bValueChanged;
 	}
 
 	return bExecutedSuccessfully;

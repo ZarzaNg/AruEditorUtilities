@@ -1,4 +1,5 @@
 ﻿#include "AssetPredicates/AruPredicate_AssetPathRedirector.h"
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 #include "AruFunctionLibrary.h"
 
@@ -73,3 +74,4 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 
 	return false;
 }
+#undef LOCTEXT_NAMESPACE

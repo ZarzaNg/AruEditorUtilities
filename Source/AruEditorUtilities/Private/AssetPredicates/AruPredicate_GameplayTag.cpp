@@ -1,4 +1,5 @@
 ﻿#include "AssetPredicates/AruPredicate_GameplayTag.h"
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 bool FAruPredicate_SetGameplayTag::Execute(
 	const FProperty* InProperty,
@@ -73,3 +74,4 @@ bool FAruPredicate_SetGameplayTagContainer::Execute(
 
 	return false;
 }
+#undef LOCTEXT_NAMESPACE

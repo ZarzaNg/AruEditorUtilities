@@ -1,5 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_PathToProperty.h"
 #include "AruFunctionLibrary.h"
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 bool FAruPredicate_PathToProperty::Execute(
 	const FProperty* InProperty,
@@ -32,3 +33,4 @@ bool FAruPredicate_PathToProperty::Execute(
 	}
 	return bExecutedSuccessfully;
 }
+#undef LOCTEXT_NAMESPACE

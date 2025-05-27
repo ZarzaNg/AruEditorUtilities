@@ -1,4 +1,5 @@
 ﻿#include "AssetPredicates/AruPredicate_Array.h"
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 bool FAruPredicate_AddArrayValue::Execute(
 	const FProperty* InProperty,
@@ -148,3 +149,4 @@ bool FAruPredicate_ModifyArrayValue::Execute(
 	}
 	return bExecutedSuccessfully;
 }
+#undef LOCTEXT_NAMESPACE
