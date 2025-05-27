@@ -97,7 +97,7 @@ protected:
 			: Index(InIndex), StructArrayRef(InStructArray) {};
 
 		FORCEINLINE bool operator!=(const TStructIterator& Other) const { return Index != Other.Index; }
-		FORCEINLINE const StructType& operator*() const { return StructArrayRef[Index].Get<const StructType>(); }
+		FORCEINLINE const StructType& operator*() const { return StructArrayRef[Index].template Get<const StructType>(); }
 		FORCEINLINE TStructIterator& operator++()
 		{
 			++Index;

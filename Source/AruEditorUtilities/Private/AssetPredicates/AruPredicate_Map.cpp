@@ -264,32 +264,40 @@ bool FAruPredicate_ModifyMapPair::Execute(
 			FMemory::Free(PendingKeyPtr);
 		};
 
+		bool bKeyChanged = false;
 		KeyProperty->CopyCompleteValue(PendingKeyPtr, MapKeyPtr);
 		for (auto& Predicate : PredicatesForKey)
 		{
 			if (const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 			{
-				PredicatePtr->Execute(MapProperty->KeyProp, PendingKeyPtr, InParameters);
+				bKeyChanged |= PredicatePtr->Execute(MapProperty->KeyProp, PendingKeyPtr, InParameters);
 			}
 		}
 
-		if (MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
+		if(bKeyChanged == true)
 		{
-			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate keys", "The modified key already exists in this map."));
-			continue;
+			if (MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
+			{
+				FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate keys", "The modified key already exists in this map."));
+				continue;
+			}
+			else
+			{
+				KeyProperty->CopyCompleteValue(MapKeyPtr, PendingKeyPtr);
+			}
 		}
-		KeyProperty->CopyCompleteValue(MapKeyPtr, PendingKeyPtr);
 
+		bool bValueChanged = false;
 		void* MapValuePtr = MapHelper.GetValuePtr(Index);
 		for (auto& Predicate : PredicatesForValue)
 		{
 			if (const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 			{
-				PredicatePtr->Execute(MapProperty->ValueProp, MapValuePtr, InParameters);
+				bValueChanged |= PredicatePtr->Execute(MapProperty->ValueProp, MapValuePtr, InParameters);
 			}
 		}
 
-		bExecutedSuccessfully = true;
+		bExecutedSuccessfully = bKeyChanged || bValueChanged;
 		MapHelper.Rehash();
 	}
 
