@@ -1,6 +1,6 @@
 ﻿#include "AssetFilters/AruFilter_ByValue.h"
-
 #include "AruFunctionLibrary.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruFilter_ByValue)
 
 bool FAruFilter_ByNumericValue::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {

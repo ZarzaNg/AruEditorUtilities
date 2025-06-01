@@ -1,7 +1,8 @@
 ﻿#include "AssetPredicates/AruPredicate_AssetPathRedirector.h"
-#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
-
 #include "AruFunctionLibrary.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_AssetPathRedirector)
+
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 bool FAruPredicate_AssetPathRedirector::Execute(
 	const FProperty* InProperty,

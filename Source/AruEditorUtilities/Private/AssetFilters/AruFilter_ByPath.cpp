@@ -1,6 +1,6 @@
 ﻿#include "AssetFilters/AruFilter_ByPath.h"
-
 #include "AruFunctionLibrary.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruFilter_ByPath)
 
 bool FAruFilter_ByObjectPath::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {

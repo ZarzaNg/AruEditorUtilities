@@ -1,4 +1,5 @@
 ﻿#include "AssetFilters/AruFilter_ByType.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruFilter_ByType)
 
 bool FAruFilter_ByObjectType::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {

@@ -1,4 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_Map.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_Map)
+
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 bool FAruPredicate_AddMapPair::Execute(

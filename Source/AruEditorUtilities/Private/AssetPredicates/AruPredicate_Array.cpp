@@ -1,4 +1,5 @@
 ﻿#include "AssetPredicates/AruPredicate_Array.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_Array)
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 bool FAruPredicate_AddArrayValue::Execute(

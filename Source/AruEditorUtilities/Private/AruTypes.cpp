@@ -1,4 +1,5 @@
 ﻿#include "AruTypes.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruTypes)
 
 bool FAruActionDefinition::Invoke(const FProperty* InProperty, void* InValue, const FInstancedPropertyBag& InParameters) const
 {

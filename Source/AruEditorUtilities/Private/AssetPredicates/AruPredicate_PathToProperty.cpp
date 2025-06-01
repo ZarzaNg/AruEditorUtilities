@@ -1,5 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_PathToProperty.h"
 #include "AruFunctionLibrary.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_PathToProperty)
+
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
 bool FAruPredicate_PathToProperty::Execute(

@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_PropertySetter.h"
-
 #include "AruFunctionLibrary.h"
 #include "UObject/PropertyAccessUtil.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_PropertySetter)
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 

@@ -1,4 +1,5 @@
 ﻿#include "AssetPredicates/AruPredicate_Set.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_Set)
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 

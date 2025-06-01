@@ -1,9 +1,9 @@
 #include "AruFunctionLibrary.h"
-
 #include "AruTypes.h"
 #include "EditorUtilityLibrary.h"
 #include "GameplayTagContainer.h"
 #include "StructUtils/InstancedStruct.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AruFunctionLibrary)
 
 #define LOCTEXT_NAMESPACE "AruEditorUtilities"
 
