@@ -385,9 +385,14 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByChain(
 				}
 			}
 		}
+
+		if (&Element == &PropertyChain.Last()) 
+		{
+			return FAruPropertyContext{ const_cast<FProperty*>(CurrentProperty), const_cast<void*>(CurrentPropertyValue) };
+		}
 	}
 
-	return FAruPropertyContext{const_cast<FProperty*>(CurrentProperty), const_cast<void*>(CurrentPropertyValue)};
+	return {};
 }
 
 #undef LOCTEXT_NAMESPACE
