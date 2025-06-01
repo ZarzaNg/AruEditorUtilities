@@ -211,18 +211,32 @@ bool UAruFunctionLibrary::ProcessContainerValues(
 
 FString UAruFunctionLibrary::ResolveParameterizedString(const FInstancedPropertyBag& InParameters, const FString& SourceString)
 {
-	if (SourceString.IsEmpty() || SourceString[0] != '@')
+	if (SourceString.IsEmpty())
 	{
 		return SourceString;
 	}
 
-	TValueOrError<FString, EPropertyBagResult> SearchStringResult = InParameters.GetValueString(FName{SourceString.RightChop(1)});
-	if (SearchStringResult.HasValue())
+	const int32 OpenBraceIndex = SourceString.Find(TEXT("{"), ESearchCase::CaseSensitive, ESearchDir::FromStart);
+	if(OpenBraceIndex == INDEX_NONE)
 	{
-		return SearchStringResult.GetValue();
+		return SourceString;
 	}
 
-	return SourceString;
+	const int32 CloseBraceIndex = SourceString.Find(TEXT("}"), ESearchCase::CaseSensitive, ESearchDir::FromStart, OpenBraceIndex + 1);
+	if(CloseBraceIndex == INDEX_NONE)
+	{
+		return SourceString;
+	}
+
+	const FString Key = SourceString.Mid(OpenBraceIndex+1, CloseBraceIndex - OpenBraceIndex -1);
+	TValueOrError<FString, EPropertyBagResult> SearchStringResult = InParameters.GetValueString(FName{Key});
+	if (SearchStringResult.HasValue() == false)
+	{
+		return SourceString;
+	}
+
+	const FString Result = SourceString.Left(OpenBraceIndex) + SearchStringResult.GetValue() + SourceString.Right(SourceString.Len() - CloseBraceIndex - 1);
+	return ResolveParameterizedString(InParameters, Result);
 }
 
 FAruPropertyContext UAruFunctionLibrary::FindPropertyByPath(
