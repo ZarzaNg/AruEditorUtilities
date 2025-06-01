@@ -385,6 +385,10 @@ FAruPropertyContext UAruFunctionLibrary::FindPropertyByChain(
 				}
 			}
 		}
+		else 
+		{
+			return {};
+		}
 
 		if (&Element == &PropertyChain.Last()) 
 		{
