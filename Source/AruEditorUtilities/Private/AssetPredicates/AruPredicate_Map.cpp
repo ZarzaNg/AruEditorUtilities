@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_Map.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_Map)
 
-#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
+#define LOCTEXT_NAMESPACE "AruPredicate_Map"
 
 bool FAruPredicate_AddMapPair::Execute(
 	const FProperty* InProperty,
@@ -11,6 +11,13 @@ bool FAruPredicate_AddMapPair::Execute(
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
 	if (MapProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertyTypeMismatch",
+					"Property:'{0}' is not a map."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -113,6 +120,13 @@ bool FAruPredicate_RemoveMapPair::Execute(
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
 	if (MapProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertyTypeMismatch",
+					"Property:'{0}' is not a map."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -188,6 +202,13 @@ bool FAruPredicate_ModifyMapPair::Execute(
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
 	if (MapProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertyTypeMismatch",
+					"Property:'{0}' is not a map."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 

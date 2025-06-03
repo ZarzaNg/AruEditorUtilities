@@ -2,7 +2,7 @@
 #include "AruFunctionLibrary.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_AssetPathRedirector)
 
-#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
+#define LOCTEXT_NAMESPACE "AruPredicate_AssetPathRedirector"
 
 bool FAruPredicate_AssetPathRedirector::Execute(
 	const FProperty* InProperty,
@@ -17,12 +17,31 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 	const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(InProperty);
 	if (ObjectProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{1}' is not an uobject."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	UObject* ObjectPtr = ObjectProperty->GetObjectPropertyValue(InValue);
 	if (ObjectPtr == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertyValueNull",
+					"[{0}][{1}]Property:'{2}' is NULL."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(ObjectProperty->GetName())
+			)
+		);
 		return false;
 	}
 
@@ -70,6 +89,19 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 	if (UObject* LoadedAsset = TargetAssetPath.TryLoad())
 	{
 		ObjectProperty->SetObjectPropertyValue(InValue, LoadedAsset);
+
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"OperationSucceed",
+					"[{0}][{1}]Previous asset:'{2}', New asset:'{3}' form '{4}'"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(ObjectPtr->GetName()),
+				FText::FromString(LoadedAsset->GetName()),
+				FText::FromString(NewPath)
+			)
+		);
 		return true;
 	}
 

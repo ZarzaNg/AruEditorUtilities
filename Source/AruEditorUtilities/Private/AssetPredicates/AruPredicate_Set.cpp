@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_Set.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_Set)
 
-#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
+#define LOCTEXT_NAMESPACE "AruPredicate_Set"
 
 bool FAruPredicate_AddSetElement::Execute(
 	const FProperty* InProperty,
@@ -11,6 +11,13 @@ bool FAruPredicate_AddSetElement::Execute(
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if (SetProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertyTypeMismatch",
+					"Property:'{0}' is not a set."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -98,6 +105,13 @@ bool FAruPredicate_RemoveSetValue::Execute(
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if (SetProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertyTypeMismatch",
+					"Property:'{0}' is not a set."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -154,6 +168,13 @@ bool FAruPredicate_ModifySetValue::Execute(
 	const FSetProperty* SetProperty = CastField<FSetProperty>(InProperty);
 	if (SetProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertyTypeMismatch",
+					"Property:'{0}' is not a set."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 

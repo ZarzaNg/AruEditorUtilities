@@ -18,6 +18,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruPredicate>> Predicates;
+
+private:
+	static FString GetCompactName() { return {"AddArrayValue"}; }
 };
 
 
@@ -37,6 +40,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruFilter>> Filters;
+	
+private:
+	static FString GetCompactName() { return {"RemoveArrayValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Modify Value(s) from Array")
@@ -58,4 +64,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruPredicate>> Predicates;
+	
+private:
+	static FString GetCompactName() { return {"ModifyArrayValue"}; }
 };

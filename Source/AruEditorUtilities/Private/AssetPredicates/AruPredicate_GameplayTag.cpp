@@ -1,7 +1,7 @@
 ﻿#include "AssetPredicates/AruPredicate_GameplayTag.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_GameplayTag)
 
-#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
+#define LOCTEXT_NAMESPACE "AruPredicate_GameplayTag"
 
 bool FAruPredicate_SetGameplayTag::Execute(
 	const FProperty* InProperty,

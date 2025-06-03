@@ -3,7 +3,7 @@
 #include "UObject/PropertyAccessUtil.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_PropertySetter)
 
-#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
+#define LOCTEXT_NAMESPACE "AruPredicate_PropertySetter"
 
 bool FAruPredicate_PropertySetter::IsCompatibleType(
 	const FProperty* TargetProperty,
@@ -238,6 +238,13 @@ bool FAruPredicate_SetBoolValue::Execute(
 	const FBoolProperty* BoolProperty = CastField<FBoolProperty>(InProperty);
 	if (BoolProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Bool_PropertyTypeMismatch",
+					"Property:'{0}' is not a bool property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -270,11 +277,25 @@ bool FAruPredicate_SetFloatValue::Execute(
 	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(InProperty);
 	if (NumericProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Float_PropertyTypeMismatch",
+					"Property:'{0}' is not a float property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	if (!NumericProperty->IsFloatingPoint())
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Float_PropertyTypeMismatch",
+					"Property:'{0}' is not a float property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -307,11 +328,25 @@ bool FAruPredicate_SetIntegerValue::Execute(
 	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(InProperty);
 	if (NumericProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Integer_PropertyTypeMismatch",
+					"Property:'{0}' is not a integer property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	if (!NumericProperty->IsInteger())
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Integer_PropertyTypeMismatch",
+					"Property:'{0}' is not a integer property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -344,6 +379,13 @@ bool FAruPredicate_SetStringValue::Execute(
 	const FStrProperty* StrProperty = CastField<FStrProperty>(InProperty);
 	if (StrProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"String_PropertyTypeMismatch",
+					"Property:'{0}' is not a string property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -376,6 +418,13 @@ bool FAruPredicate_SetTextValue::Execute(
 	const FTextProperty* TextProperty = CastField<FTextProperty>(InProperty);
 	if (TextProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Text_PropertyTypeMismatch",
+					"Property:'{0}' is not a text property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -428,6 +477,13 @@ bool FAruPredicate_SetNameValue::Execute(
 	const FNameProperty* NameProperty = CastField<FNameProperty>(InProperty);
 	if (NameProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Name_PropertyTypeMismatch",
+					"Property:'{0}' is not a name property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -460,6 +516,13 @@ bool FAruPredicate_SetEnumValue::Execute(
 	const FEnumProperty* EnumProperty = CastField<FEnumProperty>(InProperty);
 	if (EnumProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Enum_PropertyTypeMismatch",
+					"Property:'{0}' is not a enum property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -530,12 +593,26 @@ bool FAruPredicate_SetObjectValue::Execute(
 	const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(InProperty);
 	if (ObjectProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Object_PropertyTypeMismatch",
+					"Property:'{0}' is not a uobject property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	const UClass* ClassType = ObjectProperty->PropertyClass;
 	if (ClassType == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"ObjectClassMismatch",
+					"Property:'{0}' is not a uobject property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -593,6 +670,13 @@ bool FAruPredicate_SetStructValue::Execute(
 	const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
 	if (StructProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"Struct_PropertyTypeMismatch",
+					"Property:'{0}' is not a struct property."),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 

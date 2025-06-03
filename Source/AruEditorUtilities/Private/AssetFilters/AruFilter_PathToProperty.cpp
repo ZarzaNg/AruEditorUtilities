@@ -2,6 +2,8 @@
 #include "AruFunctionLibrary.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AruFilter_PathToProperty)
 
+#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
+
 bool FAruFilter_PathToProperty::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if (PathToProperty.IsEmpty() || InValue == nullptr || !Filter.IsValid())
@@ -20,6 +22,14 @@ bool FAruFilter_PathToProperty::IsConditionMet(const FProperty* InProperty, cons
 	FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(InProperty, InValue, ResolvedPath);
 	if (!PropertyContext.IsValid())
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"No property found.",
+					"Failed to find property by path:'{0}'."),
+					FText::FromString(ResolvedPath)
+				)
+			);
 		return bInverseCondition;
 	}
 
@@ -30,3 +40,5 @@ bool FAruFilter_PathToProperty::IsConditionMet(const FProperty* InProperty, cons
 
 	return bInverseCondition;
 }
+
+#undef LOCTEXT_NAMESPACE

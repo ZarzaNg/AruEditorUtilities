@@ -4,6 +4,13 @@
 #include "StructUtils/PropertyBag.h"
 #include "AruTypes.generated.h"
 
+namespace Aru::ProcessResult
+{
+	static FString Error{"ERROR"};
+	static FString Failed{"FAILED"};
+	static FString Success{"SUCCESS"};
+}
+
 UENUM(BlueprintType)
 enum class EAruNumericCompareOp : uint8
 {

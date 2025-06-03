@@ -1,6 +1,6 @@
 ﻿#include "AssetPredicates/AruPredicate_Array.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_Array)
-#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
+#define LOCTEXT_NAMESPACE "AruPredicate_Array"
 
 bool FAruPredicate_AddArrayValue::Execute(
 	const FProperty* InProperty,
@@ -10,11 +10,29 @@ bool FAruPredicate_AddArrayValue::Execute(
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if (ArrayProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"AddArray_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not an array."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	if (Predicates.Num() == 0)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"AddArray_NoPredicates",
+					"[{0}][{1}]Array:'{2}': at least one predicate is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(ArrayProperty->GetName())
+			));
 		return false;
 	}
 
@@ -22,11 +40,22 @@ bool FAruPredicate_AddArrayValue::Execute(
 	int32 NewElementIndex = ArrayHelper.AddValue();
 	if (!ArrayHelper.IsValidIndex(NewElementIndex))
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddArrayValue_AddFailed",
+					"[{0}][{1}]Failed to add new element to array:'{2}'"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(ArrayProperty->GetName())
+			));
 		return false;
 	}
 
 	FProperty* ElementProperty = ArrayProperty->Inner;
 	void* NewElementPtr = ArrayHelper.GetRawPtr(NewElementIndex);
+
+	bool bExecutedSuccessfully = false;
 	for (auto& Predicate : Predicates)
 	{
 		const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>();
@@ -35,8 +64,19 @@ bool FAruPredicate_AddArrayValue::Execute(
 			continue;
 		}
 
-		PredicatePtr->Execute(ElementProperty, NewElementPtr, InParameters);
+		bExecutedSuccessfully |= PredicatePtr->Execute(ElementProperty, NewElementPtr, InParameters);
 	}
+
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"AddArray_Result.",
+				"[{0}][{1}]Added element to array:'{2}'. Predicates: {3}"),
+			FText::FromString(GetCompactName()),
+			FText::FromString(bExecutedSuccessfully ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
+			FText::FromString(ArrayProperty->GetName()),
+			bExecutedSuccessfully ? LOCTEXT("ExecutionSuccess", "Succeeded") : LOCTEXT("ExecutionFailure", "Failed")
+		));
 
 	return true;
 }
@@ -49,11 +89,29 @@ bool FAruPredicate_RemoveArrayValue::Execute(
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if (ArrayProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"RemoveArray_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not an array."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	if (Filters.Num() == 0)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"RemoveArray_NoFilters",
+					"[{0}][{1}]Array:'{2}': at least one filter is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(ArrayProperty->GetName())
+			));
 		return false;
 	}
 
@@ -90,6 +148,17 @@ bool FAruPredicate_RemoveArrayValue::Execute(
 		ArrayHelper.RemoveValues(Index);
 	}
 
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"RemoveArray_Result.",
+				"[{0}][{1}]Removed {2} element(s) from array:'{3}'."),
+			FText::FromString(GetCompactName()),
+			FText::FromString(PendingRemove.Num() > 0 ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
+			PendingRemove.Num(),
+			FText::FromString(ArrayProperty->GetName()))
+	);
+
 	return PendingRemove.Num() > 0;
 }
 
@@ -101,11 +170,29 @@ bool FAruPredicate_ModifyArrayValue::Execute(
 	const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(InProperty);
 	if (ArrayProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"ModifyArray_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not an array."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	if (Predicates.Num() == 0)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"ModifyArray_NoPredicates",
+					"[{0}][{1}]Array:'{2}': at least one predicate is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(ArrayProperty->GetName())
+			));
 		return false;
 	}
 
@@ -128,7 +215,8 @@ bool FAruPredicate_ModifyArrayValue::Execute(
 	};
 
 	FScriptArrayHelper ArrayHelper{ArrayProperty, InValue};
-	bool bExecutedSuccessfully = false;
+	int32 MatchedCount = 0;
+	int32 ModifiedCount = 0;
 	for (int32 Index = 0; Index < ArrayHelper.Num(); ++Index)
 	{
 		void* ElementPtr = ArrayHelper.GetRawPtr(Index);
@@ -136,7 +224,12 @@ bool FAruPredicate_ModifyArrayValue::Execute(
 		{
 			continue;
 		}
+		else
+		{
+			MatchedCount++;
+		}
 
+		bool bElementModified = false;
 		for (const TInstancedStruct<FAruPredicate>& PredicateStruct : Predicates)
 		{
 			const FAruPredicate* Predicate = PredicateStruct.GetPtr<FAruPredicate>();
@@ -145,9 +238,23 @@ bool FAruPredicate_ModifyArrayValue::Execute(
 				continue;
 			}
 
-			bExecutedSuccessfully |= Predicate->Execute(ArrayProperty->Inner, ElementPtr, InParameters);
+			bElementModified |= Predicate->Execute(ArrayProperty->Inner, ElementPtr, InParameters);
 		}
+		ModifiedCount += bElementModified ? 1 : 0;
 	}
-	return bExecutedSuccessfully;
+
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"ModifyArray_Result",
+				"[{0}][{1}]Array:'{0}': {2} element(s) matched, {3} modified'."),
+			FText::FromString(GetCompactName()),
+			FText::FromString(ModifiedCount > 0 ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
+			FText::FromString(ArrayProperty->GetName()),
+			MatchedCount,
+			ModifiedCount
+		));
+
+	return ModifiedCount > 0;
 }
 #undef LOCTEXT_NAMESPACE

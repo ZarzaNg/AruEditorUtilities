@@ -2,7 +2,7 @@
 #include "AruFunctionLibrary.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AruPredicate_PathToProperty)
 
-#define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
+#define LOCTEXT_NAMESPACE "AruPredicate_PathToProperty"
 
 bool FAruPredicate_PathToProperty::Execute(
 	const FProperty* InProperty,
@@ -25,6 +25,14 @@ bool FAruPredicate_PathToProperty::Execute(
 	FAruPropertyContext PropertyContext = UAruFunctionLibrary::FindPropertyByPath(InProperty, InValue, ResolvedPath);
 	if (!PropertyContext.IsValid())
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"No property found.",
+					"Failed to find property by path:'{0}'."),
+					FText::FromString(ResolvedPath)
+				)
+			);
 		return false;
 	}
 
