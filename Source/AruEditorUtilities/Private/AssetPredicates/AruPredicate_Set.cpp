@@ -14,8 +14,10 @@ bool FAruPredicate_AddSetElement::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"PropertyTypeMismatch",
-					"Property:'{0}' is not a set."),
+					"AddToSet_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a set."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
@@ -25,20 +27,45 @@ bool FAruPredicate_AddSetElement::Execute(
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
-				LOCTEXT("Execution failed", "{0}: Lack of predicate configuration."),
-				FText::FromString(GetNameSafe(StaticStruct()))));
+				LOCTEXT(
+					"AddToSet_NoPredicatesForKey",
+					"[{0}][{1}]Set:'{2}'. At least one predicate is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	FProperty* ElementProperty = SetProperty->ElementProp;
 	if (ElementProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddToSet_GetElementPropertyFailed",
+					"[{0}][{1}]Set:'{2}'. Can't get element property."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
+		
 		return false;
 	}
 
 	void* PendingElementPtr = FMemory::Malloc(ElementProperty->GetSize());
 	if (PendingElementPtr == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddToSet__MallocFailed",
+					"[{0}][{1}]Set:'{2}'. Malloc memory for element failed."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
+		
 		return false;
 	}
 
@@ -52,21 +79,23 @@ bool FAruPredicate_AddSetElement::Execute(
 	ElementProperty->InitializeValue(PendingElementPtr);
 	for (auto& Predicate : Predicates)
 	{
-		const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>();
-		if (PredicatePtr == nullptr)
+		if (const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>())
 		{
-			continue;
+			bExecutedSuccessfully |= PredicatePtr->Execute(ElementProperty, PendingElementPtr, InParameters);
 		}
-
-		bExecutedSuccessfully |= PredicatePtr->Execute(ElementProperty, PendingElementPtr, InParameters);
 	}
 
 	if (bExecutedSuccessfully == false)
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
-				LOCTEXT("Execution failed", "{0}: Execution failed."),
-				FText::FromString(GetNameSafe(StaticStruct()))));
+				LOCTEXT(
+					"AddToSet_ExecutionFailure",
+					"[{0}][{1}]Set:'{2}'. Predicate(s) for element executed failed."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -75,8 +104,13 @@ bool FAruPredicate_AddSetElement::Execute(
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
-				LOCTEXT("Execution failed", "{0}: The value pending to add already exists in this set."),
-				FText::FromString(GetNameSafe(StaticStruct()))));
+				LOCTEXT(
+					"AddToSet_DuplicateElements",
+					"[{0}][{1}]The element pending to add already existed in this set:'{2}'."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -108,8 +142,10 @@ bool FAruPredicate_RemoveSetValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"PropertyTypeMismatch",
-					"Property:'{0}' is not a set."),
+					"AddToSet_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a set."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
@@ -157,6 +193,17 @@ bool FAruPredicate_RemoveSetValue::Execute(
 		SetHelper.RemoveAt(Index);
 	}
 
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"RemoveFromSet_Result.",
+				"[{0}][{1}]Removed {2} element(s) from set:'{3}'."),
+			FText::FromString(GetCompactName()),
+			FText::FromString(PendingRemove.Num() > 0 ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
+			PendingRemove.Num(),
+			FText::FromString(InProperty->GetName()))
+	);
+
 	return PendingRemove.Num() > 0;
 }
 
@@ -171,10 +218,13 @@ bool FAruPredicate_ModifySetValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"PropertyTypeMismatch",
-					"Property:'{0}' is not a set."),
+					"AddToSet_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a set."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
+		
 		return false;
 	}
 
@@ -188,8 +238,14 @@ bool FAruPredicate_ModifySetValue::Execute(
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
-				LOCTEXT("Execution failed", "{0}: Lack of filter configuration."),
-				FText::FromString(GetNameSafe(StaticStruct()))));
+				LOCTEXT(
+					"ModifySetValue_NoFilters",
+					"[{0}][{1}]Set:'{2}'. At least one filter is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
+		
 		return false;
 	}
 
@@ -211,7 +267,8 @@ bool FAruPredicate_ModifySetValue::Execute(
 		return true;
 	};
 
-	bool bExecutedSuccessfully = false;
+	int32 MatchedCount = 0;
+	int32 ModifiedCount = 0;
 	FScriptSetHelper SetHelper{SetProperty, InValue};
 	for (int32 Index = 0; Index < SetHelper.Num(); ++Index)
 	{
@@ -220,10 +277,24 @@ bool FAruPredicate_ModifySetValue::Execute(
 		{
 			continue;
 		}
+		else
+		{
+			MatchedCount++;
+		}
 
 		void* PendingElementPtr = FMemory::Malloc(ElementProperty->GetSize());
 		if (PendingElementPtr == nullptr)
 		{
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"ModifySetValue_MallocFailed",
+					"[{0}][{1}]Set:'{2}'. Malloc memory for element failed."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
+			
 			return false;
 		}
 
@@ -254,19 +325,37 @@ bool FAruPredicate_ModifySetValue::Execute(
 		if (SetHelper.FindElementIndex(PendingElementPtr) != INDEX_NONE)
 		{
 			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
-			FText::Format(
-				LOCTEXT("Execution failed", "{0}: The value pending to add already exists in this set."),
-				FText::FromString(GetNameSafe(StaticStruct()))));
+					FText::Format(
+						LOCTEXT(
+							"ModifySetValue_DuplicateElements",
+							"[{0}][{1}]The element pending to set already existed in this map:'{2}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+						FText::FromString(InProperty->GetName())
+					));
+			
 			continue;
 		}
 
 		ElementProperty->CopyCompleteValue(ElementPtr, PendingElementPtr);
 		SetHelper.Rehash();
 
-		bExecutedSuccessfully |= bValueChanged;
+		ModifiedCount += bValueChanged? 1 : 0;
 	}
 
-	return bExecutedSuccessfully;
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"ModifySetValue_Result",
+				"[{0}][{1}]Array:'{2}': {3} element(s) matched, {4} modified'."),
+			FText::FromString(GetCompactName()),
+			FText::FromString(ModifiedCount > 0 ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
+			FText::FromString(InProperty->GetName()),
+			MatchedCount,
+			ModifiedCount
+		));
+
+	return ModifiedCount > 0;
 }
 
 #undef LOCTEXT_NAMESPACE

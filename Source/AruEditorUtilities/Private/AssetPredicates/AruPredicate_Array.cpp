@@ -13,7 +13,7 @@ bool FAruPredicate_AddArrayValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"AddArray_PropertyTypeMismatch",
+					"AddArrayValue_PropertyTypeMismatch",
 					"[{0}][{1}]Property:'{2}' is not an array."),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Failed),
@@ -27,8 +27,56 @@ bool FAruPredicate_AddArrayValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"AddArray_NoPredicates",
-					"[{0}][{1}]Array:'{2}': at least one predicate is required to complete the process."),
+					"AddArrayValue_NoPredicates",
+					"[{0}][{1}]Array:'{2}'. At least one predicate is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(ArrayProperty->GetName())
+			));
+		return false;
+	}
+
+	FProperty* ElementProperty = ArrayProperty->Inner;
+	void* PendingElementPtr = FMemory::Malloc(ElementProperty->GetSize());
+	if (PendingElementPtr == nullptr)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddArrayValue_MallocFailed",
+					"[{0}][{1}]Map:'{2}'. Malloc memory for element failed."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
+		return false;
+	}
+	
+	ON_SCOPE_EXIT
+	{
+		ElementProperty->DestroyValue(PendingElementPtr);
+		FMemory::Free(PendingElementPtr);
+	};
+	
+	bool bExecutedSuccessfully = false;
+	for (auto& Predicate : Predicates)
+	{
+		const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>();
+		if (PredicatePtr == nullptr)
+		{
+			continue;
+		}
+
+		bExecutedSuccessfully |= PredicatePtr->Execute(ElementProperty, PendingElementPtr, InParameters);
+	}
+
+	if(bExecutedSuccessfully == false)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"AddArrayValue_ExecutionFailure",
+					"[{0}][{1}]Array:'{2}'. Predicate(s) executed failed."),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(ArrayProperty->GetName())
@@ -52,30 +100,17 @@ bool FAruPredicate_AddArrayValue::Execute(
 		return false;
 	}
 
-	FProperty* ElementProperty = ArrayProperty->Inner;
 	void* NewElementPtr = ArrayHelper.GetRawPtr(NewElementIndex);
-
-	bool bExecutedSuccessfully = false;
-	for (auto& Predicate : Predicates)
-	{
-		const FAruPredicate* PredicatePtr = Predicate.GetPtr<FAruPredicate>();
-		if (PredicatePtr == nullptr)
-		{
-			continue;
-		}
-
-		bExecutedSuccessfully |= PredicatePtr->Execute(ElementProperty, NewElementPtr, InParameters);
-	}
+	ElementProperty->CopyCompleteValue(NewElementPtr, PendingElementPtr);
 
 	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
 		FText::Format(
 			LOCTEXT(
 				"AddArray_Result.",
-				"[{0}][{1}]Added element to array:'{2}'. Predicates: {3}"),
+				"[{0}][{1}]Added element to array:'{2}'."),
 			FText::FromString(GetCompactName()),
-			FText::FromString(bExecutedSuccessfully ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
-			FText::FromString(ArrayProperty->GetName()),
-			bExecutedSuccessfully ? LOCTEXT("ExecutionSuccess", "Succeeded") : LOCTEXT("ExecutionFailure", "Failed")
+			FText::FromString(Aru::ProcessResult::Success),
+			FText::FromString(ArrayProperty->GetName())
 		));
 
 	return true;
@@ -92,7 +127,7 @@ bool FAruPredicate_RemoveArrayValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"RemoveArray_PropertyTypeMismatch",
+					"RemoveFromArray_PropertyTypeMismatch",
 					"[{0}][{1}]Property:'{2}' is not an array."),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Failed),
@@ -106,8 +141,8 @@ bool FAruPredicate_RemoveArrayValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"RemoveArray_NoFilters",
-					"[{0}][{1}]Array:'{2}': at least one filter is required to complete the process."),
+					"RemoveFromArray_NoFilters",
+					"[{0}][{1}]Array:'{2}'. At least one filter is required to complete the process."),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(ArrayProperty->GetName())
@@ -151,7 +186,7 @@ bool FAruPredicate_RemoveArrayValue::Execute(
 	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
 		FText::Format(
 			LOCTEXT(
-				"RemoveArray_Result.",
+				"RemoveFromArray_Result.",
 				"[{0}][{1}]Removed {2} element(s) from array:'{3}'."),
 			FText::FromString(GetCompactName()),
 			FText::FromString(PendingRemove.Num() > 0 ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
@@ -173,7 +208,7 @@ bool FAruPredicate_ModifyArrayValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"ModifyArray_PropertyTypeMismatch",
+					"ModifyArrayValue_PropertyTypeMismatch",
 					"[{0}][{1}]Property:'{2}' is not an array."),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Failed),
@@ -187,8 +222,8 @@ bool FAruPredicate_ModifyArrayValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"ModifyArray_NoPredicates",
-					"[{0}][{1}]Array:'{2}': at least one predicate is required to complete the process."),
+					"ModifyArrayValue_NoPredicates",
+					"[{0}][{1}]Array:'{2}'. At least one predicate is required to complete the process."),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(ArrayProperty->GetName())
@@ -246,8 +281,8 @@ bool FAruPredicate_ModifyArrayValue::Execute(
 	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
 		FText::Format(
 			LOCTEXT(
-				"ModifyArray_Result",
-				"[{0}][{1}]Array:'{0}': {2} element(s) matched, {3} modified'."),
+				"ModifyArrayValue_Result",
+				"[{0}][{1}]Array:'{2}': {3} element(s) matched, {4} modified'."),
 			FText::FromString(GetCompactName()),
 			FText::FromString(ModifiedCount > 0 ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
 			FText::FromString(ArrayProperty->GetName()),

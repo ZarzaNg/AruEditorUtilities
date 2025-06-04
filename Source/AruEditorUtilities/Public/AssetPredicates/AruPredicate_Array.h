@@ -20,7 +20,7 @@ protected:
 	TArray<TInstancedStruct<FAruPredicate>> Predicates;
 
 private:
-	static FString GetCompactName() { return {"AddArrayValue"}; }
+	static FString GetCompactName() { return {"AddToArray"}; }
 };
 
 
@@ -42,7 +42,7 @@ protected:
 	TArray<TInstancedStruct<FAruFilter>> Filters;
 	
 private:
-	static FString GetCompactName() { return {"RemoveArrayValue"}; }
+	static FString GetCompactName() { return {"RemoveFromArray"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Modify Value(s) from Array")

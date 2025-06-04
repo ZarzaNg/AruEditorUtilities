@@ -14,8 +14,10 @@ bool FAruPredicate_AddMapPair::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"PropertyTypeMismatch",
-					"Property:'{0}' is not a map."),
+					"AddToMap_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a map."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
@@ -23,6 +25,15 @@ bool FAruPredicate_AddMapPair::Execute(
 
 	if (PredicatesForKey.Num() == 0)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"AddToMap_NoPredicatesForKey",
+					"[{0}][{1}]Map:'{2}'. At least one predicate is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -30,12 +41,30 @@ bool FAruPredicate_AddMapPair::Execute(
 	FProperty* ValueProperty = MapProperty->ValueProp;
 	if (KeyProperty == nullptr || ValueProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddToMap_ErrorSetup",
+					"[{0}][{1}]Map:'{2}'. Can't get map inner property."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	void* PendingKeyPtr = FMemory::Malloc(KeyProperty->GetSize());
 	if (PendingKeyPtr == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddToMap_MallocFailed",
+					"[{0}][{1}]Map:'{2}'. Malloc memory for key failed."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -58,14 +87,30 @@ bool FAruPredicate_AddMapPair::Execute(
 
 	if (bExecutedSuccessfully == false)
 	{
-		// TODO: Add Log.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"AddToMap_ExecutionFailure",
+					"[{0}][{1}]Map:'{2}'. Predicate(s) for key executed failed."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	FScriptMapHelper MapHelper{MapProperty, InValue};
 	if (MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
 	{
-		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate keys", "The key pending to add already exists in this map."));
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"AddToMap_DuplicateKeys",
+					"[{0}][{1}]The key pending to add already existed in this map:'{2}'."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -73,6 +118,17 @@ bool FAruPredicate_AddMapPair::Execute(
 	if (!MapHelper.IsValidIndex(NewElementIndex))
 	{
 		MapHelper.RemoveAt(NewElementIndex);
+
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddToMap_AddFailed",
+					"[{0}][{1}]Failed to add new pair to map:'{2}'"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
+
 		return false;
 	}
 
@@ -85,6 +141,17 @@ bool FAruPredicate_AddMapPair::Execute(
 	if (NewKeyPtr == nullptr)
 	{
 		MapHelper.RemoveAt(NewElementIndex);
+
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddToMap_GetKeyFailed",
+					"[{0}][{1}]Failed to get new key from map:'{2}'"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
+
 		return false;
 	}
 	KeyProperty->CopyCompleteValue(NewKeyPtr, PendingKeyPtr);
@@ -93,6 +160,17 @@ bool FAruPredicate_AddMapPair::Execute(
 	if (NewValuePtr == nullptr)
 	{
 		MapHelper.RemoveAt(NewElementIndex);
+
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"AddToMap_GetValueFailed",
+					"[{0}][{1}]Failed to get new value from map:'{2}'"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
+
 		return false;
 	}
 
@@ -104,6 +182,16 @@ bool FAruPredicate_AddMapPair::Execute(
 		}
 	}
 
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"AddToMap_Result.",
+				"[{0}][{1}]Added element to map:'{2}'."),
+			FText::FromString(GetCompactName()),
+			FText::FromString(Aru::ProcessResult::Success),
+			FText::FromString(InProperty->GetName())
+		));
+
 	return bExecutedSuccessfully;
 }
 
@@ -112,19 +200,46 @@ bool FAruPredicate_RemoveMapPair::Execute(
 	void* InValue,
 	const FInstancedPropertyBag& InParameters) const
 {
-	if (KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
-	{
-		return false;
-	}
-
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
 	if (MapProperty == nullptr)
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"PropertyTypeMismatch",
-					"Property:'{0}' is not a map."),
+					"RemoveFromMap_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a map."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
+		return false;
+	}
+
+	if (KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"RemoveFromMap_NoFilters",
+					"[{0}][{1}]Map:'{2}'. At least one filter is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
+		return false;
+	}
+
+	const FProperty* KeyProperty = MapProperty->KeyProp;
+	const FProperty* ValueProperty = MapProperty->ValueProp;
+	if (KeyProperty == nullptr || ValueProperty == nullptr)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"RemoveFromMap_ErrorSetup",
+					"[{0}][{1}]Map:'{2}'. Can't get map inner property."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
@@ -140,7 +255,7 @@ bool FAruPredicate_RemoveMapPair::Execute(
 				continue;
 			}
 
-			if (!Filter->IsConditionMet(MapProperty->KeyProp, KeyPtr, InParameters))
+			if (!Filter->IsConditionMet(KeyProperty, KeyPtr, InParameters))
 			{
 				return false;
 			}
@@ -154,7 +269,7 @@ bool FAruPredicate_RemoveMapPair::Execute(
 				continue;
 			}
 
-			if (!Filter->IsConditionMet(MapProperty->ValueProp, ValuePtr, InParameters))
+			if (!Filter->IsConditionMet(ValueProperty, ValuePtr, InParameters))
 			{
 				return false;
 			}
@@ -186,6 +301,18 @@ bool FAruPredicate_RemoveMapPair::Execute(
 	{
 		MapHelper.RemoveAt(Index);
 	}
+
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"RemoveFromMap_Result.",
+				"[{0}][{1}]Removed {2} element(s) from map:'{3}'."),
+			FText::FromString(GetCompactName()),
+			FText::FromString(PendingRemove.Num() > 0 ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
+			PendingRemove.Num(),
+			FText::FromString(InProperty->GetName()))
+	);
+
 	return PendingRemove.Num() > 0;
 }
 
@@ -194,28 +321,48 @@ bool FAruPredicate_ModifyMapPair::Execute(
 	void* InValue,
 	const FInstancedPropertyBag& InParameters) const
 {
-	if (KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
-	{
-		return false;
-	}
-
 	const FMapProperty* MapProperty = CastField<FMapProperty>(InProperty);
 	if (MapProperty == nullptr)
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"PropertyTypeMismatch",
-					"Property:'{0}' is not a map."),
+					"ModifyMapValue_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a map."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
 	}
 
-	FProperty* KeyProperty = MapProperty->KeyProp;
-	FProperty* ValueProperty = MapProperty->ValueProp;
+	if (KeyFilters.Num() == 0 && ValueFilters.Num() == 0)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"ModifyMapValue_NoFilters",
+					"[{0}][{1}]Map:'{2}'. At least one filter is required to complete the process."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
+		return false;
+	}
+
+	const FProperty* KeyProperty = MapProperty->KeyProp;
+	const FProperty* ValueProperty = MapProperty->ValueProp;
 	if (KeyProperty == nullptr || ValueProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"ModifyMapValue_ErrorSetup",
+					"[{0}][{1}]Map:'{2}'. Can't get map inner property."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -271,14 +418,24 @@ bool FAruPredicate_ModifyMapPair::Execute(
 		}
 	}
 
-	bool bExecutedSuccessfully = false;
+	int32 ModifiedCount = 0;
 	for (int32& Index : PendingToModify)
 	{
 		void* MapKeyPtr = MapHelper.GetKeyPtr(Index);
 		void* PendingKeyPtr = FMemory::Malloc(KeyProperty->GetSize());
 		if (PendingKeyPtr == nullptr)
 		{
-			continue;
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"ModifyMapValue_MallocFailed",
+					"[{0}][{1}]Map:'{2}'. Malloc memory for key failed."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
+				FText::FromString(InProperty->GetName())
+			));
+			
+			return false;
 		}
 
 		ON_SCOPE_EXIT
@@ -297,11 +454,19 @@ bool FAruPredicate_ModifyMapPair::Execute(
 			}
 		}
 
-		if(bKeyChanged == true)
+		if (bKeyChanged == true)
 		{
 			if (MapHelper.FindMapPairIndexFromHash(PendingKeyPtr) != INDEX_NONE)
 			{
-				FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(LOCTEXT("Duplicate keys", "The modified key already exists in this map."));
+				FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+					FText::Format(
+						LOCTEXT(
+							"ModifyMapValue_DuplicateKeys",
+							"[{0}][{1}]The key pending to set already existed in this map:'{2}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+						FText::FromString(InProperty->GetName())
+					));
 				continue;
 			}
 			else
@@ -320,10 +485,22 @@ bool FAruPredicate_ModifyMapPair::Execute(
 			}
 		}
 
-		bExecutedSuccessfully = bKeyChanged || bValueChanged;
+		ModifiedCount += bKeyChanged || bValueChanged ? 1 : 0;
 		MapHelper.Rehash();
 	}
 
-	return bExecutedSuccessfully;
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"ModifyMapValue_Result",
+				"[{0}][{1}]Map:'{2}': {3} element(s) matched, {4} modified'."),
+			FText::FromString(GetCompactName()),
+			FText::FromString(ModifiedCount > 0 ? Aru::ProcessResult::Success : Aru::ProcessResult::Failed),
+			FText::FromString(InProperty->GetName()),
+			PendingToModify.Num(),
+			ModifiedCount
+		));
+
+	return ModifiedCount > 0;
 }
 #undef LOCTEXT_NAMESPACE

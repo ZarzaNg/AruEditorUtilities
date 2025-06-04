@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "FAruEditorUtilitiesModule"
 
-UENUM (BlueprintType)
+UENUM(BlueprintType)
 enum class EAruValueSource : uint8
 {
 	Value			UMETA (DisplayName="From Value"),
@@ -43,6 +43,8 @@ protected:
 	FString ParameterName{};
 
 protected:
+	virtual FString GetCompactName() const { return {"ShouldBeOverride"}; }
+
 	template <typename T, typename = std::enable_if_t<std::is_base_of_v<FProperty, std::decay_t<T>>>>
 	TOptional<const void*> GetNewValueBySourceType(const FInstancedPropertyBag& InParameters, const UStruct* TypeToCheck = nullptr) const
 	{
@@ -67,12 +69,31 @@ protected:
 		const T* SubProperty = CastField<T>(InProperty);
 		if (SubProperty == nullptr)
 		{
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertySetter_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' type mismatches."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 			return false;
 		}
 
 		TOptional<const void*> OptionalValue = GetNewValueBySourceType<T>(InParameters);
 		if (!OptionalValue.IsSet())
 		{
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertySetter_NewValueNoFound",
+					"[{0}][{1}]Property:'{2}': can't find new value by source type:'{3}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(StaticEnum<EAruValueSource>()->GetValueAsString(ValueSource))
+			));
 			return false;
 		}
 
@@ -132,6 +153,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetBoolValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Float Value")
@@ -151,6 +175,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetFloatValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Integer Value")
@@ -170,6 +197,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetIntegerValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set String Value")
@@ -189,6 +219,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetStringValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Text Value")
@@ -208,6 +241,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetTextValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Name Value")
@@ -227,6 +263,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetNameValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Enum Value")
@@ -246,6 +285,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetEnumValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Struct Value")
@@ -265,6 +307,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetStructValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Object Value")
@@ -284,6 +329,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetUObjectValue"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Set Instanced Struct Value")
@@ -303,6 +351,9 @@ public:
 		const FProperty* InProperty,
 		void* InValue,
 		const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	virtual FString GetCompactName() const override { return {"SetInstancedStructValue"}; }
 };
 
 #undef LOCTEXT_NAMESPACE

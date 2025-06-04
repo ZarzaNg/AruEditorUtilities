@@ -28,11 +28,13 @@ bool FAruPredicate_PathToProperty::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"No property found.",
-					"Failed to find property by path:'{0}'."),
-					FText::FromString(ResolvedPath)
-				)
-			);
+					"NoPropertyFound",
+					"[{0}][{1}]Failed to find property by path:'{2}'."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(ResolvedPath)
+			));
+
 		return false;
 	}
 
@@ -41,6 +43,19 @@ bool FAruPredicate_PathToProperty::Execute(
 	{
 		bExecutedSuccessfully |= PredicatePtr->Execute(PropertyContext.PropertyPtr, PropertyContext.ValuePtr.GetValue(), InParameters);
 	}
+
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"PathToProperty_Result",
+				"[{0}][{1}]Found property:'{2}' by Path:'{3}'. Execution {4}"),
+			FText::FromString(GetCompactName()),
+			FText::FromString(Aru::ProcessResult::Failed),
+			FText::FromString(PropertyContext.PropertyPtr->GetName()),
+			FText::FromString(ResolvedPath),
+			bExecutedSuccessfully ? LOCTEXT("Succeed", "Succeed") : LOCTEXT("Failure", "Failure")
+		));
+
 	return bExecutedSuccessfully;
 }
 #undef LOCTEXT_NAMESPACE

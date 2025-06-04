@@ -21,6 +21,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruPredicate>> PredicatesForValue;
+private:
+	static FString GetCompactName() { return {"AddToMap"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Remove Pair(s) from Map")
@@ -42,6 +44,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruFilter>> ValueFilters;
+private:
+	static FString GetCompactName() { return {"RemoveFromMap"}; }
 };
 
 USTRUCT(BlueprintType, DisplayName="Modify Pair(s) from Map")
@@ -69,4 +73,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FAruPredicate>> PredicatesForValue;
+private:
+	static FString GetCompactName() { return {"ModifyMap"}; }
 };

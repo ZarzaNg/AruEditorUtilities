@@ -6,6 +6,13 @@ USTRUCT(BlueprintType, DisplayName="Path To Property")
 struct FAruPredicate_PathToProperty : public FAruPredicate
 {
 	GENERATED_BODY()
+public:
+	virtual ~FAruPredicate_PathToProperty() override {};
+
+	virtual bool Execute(
+		const FProperty* InProperty,
+		void* InValue,
+		const FInstancedPropertyBag& InParameters) const override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
@@ -14,11 +21,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TInstancedStruct<FAruPredicate> Predicate;
 
-public:
-	virtual ~FAruPredicate_PathToProperty() override {};
-
-	virtual bool Execute(
-		const FProperty* InProperty,
-		void* InValue,
-		const FInstancedPropertyBag& InParameters) const override;
+private:
+	static FString GetCompactName() { return {"FindPropertyByPath"}; }
 };
