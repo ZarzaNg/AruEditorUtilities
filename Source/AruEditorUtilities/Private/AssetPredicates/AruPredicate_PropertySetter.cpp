@@ -393,6 +393,8 @@ bool FAruPredicate_SetBoolValue::Execute(
 		return false;
 	}
 
+	bool Result = false;
+	const bool PreviousValue = BoolProperty->GetPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
@@ -412,11 +414,13 @@ bool FAruPredicate_SetBoolValue::Execute(
 			return false;
 		}
 		BoolProperty->SetPropertyValue(InValue, ParameterValue.GetValue());
-		return true;
+		Result = true;
+	}
+	else
+	{
+		Result = SetPropertyValue<FBoolProperty>(InProperty, InValue, InParameters);
 	}
 
-	const bool PreviousValue = BoolProperty->GetPropertyValue(InValue);
-	const bool Result = SetPropertyValue<FBoolProperty>(InProperty, InValue, InParameters);
 	if (Result == true)
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
@@ -436,7 +440,7 @@ bool FAruPredicate_SetBoolValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"SetBoolProperty_Failed",
+					"SetProperty_Failed",
 					"[{0}][{1}]Property:'{2}' operation failure."),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Failed),
@@ -484,8 +488,10 @@ bool FAruPredicate_SetFloatValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"Float_PropertyTypeMismatch",
-					"Property:'{0}' is not a float property."),
+					"SetFloatProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a bool property."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
@@ -496,27 +502,71 @@ bool FAruPredicate_SetFloatValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"Float_PropertyTypeMismatch",
-					"Property:'{0}' is not a float property."),
+					"SetFloatProperty_NumericTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a float property."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
 	}
 
+	bool Result = false;
+	const float PreviousValue = NumericProperty->GetFloatingPointPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
 		TValueOrError<double, EPropertyBagResult> ParameterValue = InParameters.GetValueDouble(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
-			// TODO: Add log.
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+				FText::Format(
+					LOCTEXT(
+						"NoPropertyFoundInParameter",
+						"[{0}][{1}]Property:'{2}'. Can't find '{3}' in parameters."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Failed),
+					FText::FromString(InProperty->GetName()),
+					FText::FromString(ResolvedParameterName)
+				));
 			return false;
 		}
 		NumericProperty->SetFloatingPointPropertyValue(InValue, ParameterValue.GetValue());
-		return true;
+		Result = true;
+	}
+	else
+	{
+		Result = SetPropertyValue<FNumericProperty>(InProperty, InValue, InParameters);
+	}
+	
+	if (Result == true)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetFloatProperty_Success",
+					"[{0}][{1}]Property:'{2}' previous value:{3}, new value:{4}"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(InProperty->GetName()),
+				PreviousValue,
+				NumericProperty->GetFloatingPointPropertyValue(InValue)
+			));
+	}
+	else
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetProperty_Failed",
+					"[{0}][{1}]Property:'{2}' operation failure."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 	}
 
-	return SetPropertyValue<FNumericProperty>(InProperty, InValue, InParameters);
+	return Result;
 }
 
 bool FAruPredicate_SetIntegerValue::Execute(
@@ -556,8 +606,10 @@ bool FAruPredicate_SetIntegerValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"Integer_PropertyTypeMismatch",
-					"Property:'{0}' is not a integer property."),
+					"SetIntegerProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a integer property."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
@@ -568,13 +620,17 @@ bool FAruPredicate_SetIntegerValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"Integer_PropertyTypeMismatch",
-					"Property:'{0}' is not a integer property."),
+					"SetIntegerProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a integer property."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
 	}
 
+	bool Result = false;
+	const float PreviousValue = NumericProperty->GetFloatingPointPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
@@ -594,10 +650,41 @@ bool FAruPredicate_SetIntegerValue::Execute(
 			return false;
 		}
 		NumericProperty->SetIntPropertyValue(InValue, ParameterValue.GetValue());
-		return true;
+		Result = true;
+	}
+	else
+	{
+		Result = SetPropertyValue<FNumericProperty>(InProperty, InValue, InParameters);
 	}
 
-	return SetPropertyValue<FNumericProperty>(InProperty, InValue, InParameters);
+	if (Result == true)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetIntegerProperty_Success",
+					"[{0}][{1}]Property:'{2}' previous value:{3}, new value:{4}"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(InProperty->GetName()),
+				PreviousValue,
+				NumericProperty->GetFloatingPointPropertyValue(InValue)
+			));
+	}
+	else
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetProperty_Failed",
+					"[{0}][{1}]Property:'{2}' operation failure."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
+	}
+
+	return Result;
 }
 
 bool FAruPredicate_SetStringValue::Execute(
@@ -637,27 +724,70 @@ bool FAruPredicate_SetStringValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"String_PropertyTypeMismatch",
-					"Property:'{0}' is not a string property."),
+					"SetStrProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a string property."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
 	}
 
+	bool Result = false;
+	const FString PreviousValue = StrProperty->GetPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
 		TValueOrError<FString, EPropertyBagResult> ParameterValue = InParameters.GetValueString(FName{ResolvedParameterName});
 		if (!ParameterValue.HasValue())
 		{
-			// TODO: Add Warning.
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+				FText::Format(
+					LOCTEXT(
+						"NoPropertyFoundInParameter",
+						"[{0}][{1}]Property:'{2}'. Can't find '{3}' in parameters."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Failed),
+					FText::FromString(InProperty->GetName()),
+					FText::FromString(ResolvedParameterName)
+				));
 			return false;
 		}
 		StrProperty->SetPropertyValue(InValue, ParameterValue.GetValue());
-		return true;
+		Result = true;
+	}
+	else
+	{
+		Result = SetPropertyValue<FStrProperty>(InProperty, InValue, InParameters);
 	}
 
-	return SetPropertyValue<FStrProperty>(InProperty, InValue, InParameters);
+	if (Result == true)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetStrProperty_Success",
+					"[{0}][{1}]Property:'{2}' previous value:{3}, new value:{4}"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(PreviousValue),
+				FText::FromString(StrProperty->GetPropertyValue(InValue))
+			));
+	}
+	else
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetProperty_Failed",
+					"[{0}][{1}]Property:'{2}' operation failure."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
+	}
+	return Result;
 }
 
 bool FAruPredicate_SetTextValue::Execute(
@@ -697,13 +827,17 @@ bool FAruPredicate_SetTextValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"Text_PropertyTypeMismatch",
-					"Property:'{0}' is not a text property."),
+					"SetTextProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{0}' is not a text property."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
 	}
 
+	bool Result = false;
+	const FText PreviousValue = TextProperty->GetPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
@@ -723,33 +857,71 @@ bool FAruPredicate_SetTextValue::Execute(
 			return false;
 		}
 		TextProperty->SetPropertyValue(InValue, ParameterValue.GetValue());
-		return true;
+		Result = true;
 	}
-
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>(InParameters);
-	if (!OptionalValue.IsSet())
+	else
 	{
-		// TODO: Add Warning.
-		return false;
+		TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>(InParameters);
+		if (!OptionalValue.IsSet())
+		{
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertySetter_NewValueNoFound",
+					"[{0}][{1}]Property:'{2}': can't find new value by source type:'{3}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(StaticEnum<EAruValueSource>()->GetValueAsString(ValueSource))
+			));
+			return false;
+		}
+
+		const void* PendingValue = OptionalValue.GetValue();
+		if (PendingValue == nullptr)
+		{
+			return false;
+		}
+
+		const FString* StringValue = static_cast<const FString*>(PendingValue);
+		if (StringValue == nullptr)
+		{
+			return false;
+		}
+
+		FText PendingTextValue = FText::FromString(*StringValue);
+		TextProperty->CopyCompleteValue(InValue, &PendingTextValue);
+		Result = true;
 	}
 
-	const void* PendingValue = OptionalValue.GetValue();
-	if (PendingValue == nullptr)
+	if (Result == true)
 	{
-		// TODO: Add Warning.
-		return false;
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetTextProperty_Success",
+					"[{0}][{1}]Property:'{2}' previous value:{3}, new value:{4}"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(InProperty->GetName()),
+				PreviousValue,
+				TextProperty->GetPropertyValue(InValue)
+			));
 	}
-
-	const FString* StringValue = static_cast<const FString*>(PendingValue);
-	if (StringValue == nullptr)
+	else
 	{
-		// TODO: Add Warning.
-		return false;
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetProperty_Failed",
+					"[{0}][{1}]Property:'{2}' operation failure."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 	}
-
-	FText PendingTextValue = FText::FromString(*StringValue);
-	TextProperty->CopyCompleteValue(InValue, &PendingTextValue);
-	return true;
+	
+	return Result;
 }
 
 bool FAruPredicate_SetNameValue::Execute(
@@ -790,12 +962,16 @@ bool FAruPredicate_SetNameValue::Execute(
 			FText::Format(
 				LOCTEXT(
 					"Name_PropertyTypeMismatch",
-					"Property:'{0}' is not a name property."),
+					"[{0}][{1}]Property:'{2}' is not an FName property."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
 	}
-
+	
+	bool Result = false;
+	const FName PreviousValue = NameProperty->GetPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
@@ -815,10 +991,41 @@ bool FAruPredicate_SetNameValue::Execute(
 			return false;
 		}
 		NameProperty->SetPropertyValue(InValue, ParameterValue.GetValue());
-		return true;
+		Result = true;
+	}
+	else
+	{
+		Result = SetPropertyValue<FNameProperty>(InProperty, InValue, InParameters);
+	}
+	
+	if (Result == true)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetNameProperty_Success",
+					"[{0}][{1}]Property:'{2}' previous value:{3}, new value:{4}"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(InProperty->GetName()),
+				FText::FromName(PreviousValue),
+				FText::FromName(NameProperty->GetPropertyValue(InValue))
+			));
+	}
+	else
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetProperty_Failed",
+					"[{0}][{1}]Property:'{2}' operation failure."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 	}
 
-	return SetPropertyValue<FNameProperty>(InProperty, InValue, InParameters);
+	return Result;
 }
 
 bool FAruPredicate_SetEnumValue::Execute(
@@ -858,8 +1065,10 @@ bool FAruPredicate_SetEnumValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"Enum_PropertyTypeMismatch",
-					"Property:'{0}' is not a enum property."),
+					"SetEnumProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a enum property."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
@@ -868,17 +1077,26 @@ bool FAruPredicate_SetEnumValue::Execute(
 	const UEnum* EnumType = EnumProperty->GetEnum();
 	if (EnumType == nullptr)
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetEnumProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' enum type is NULL."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+					FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	const FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
 	if (UnderlyingProperty == nullptr)
 	{
-		// TODO: Add Warning.
 		return false;
 	}
 
+	bool Result = false;
+	const int64 PreviousValue = UnderlyingProperty->GetSignedIntPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
@@ -898,39 +1116,86 @@ bool FAruPredicate_SetEnumValue::Execute(
 			return false;
 		}
 		UnderlyingProperty->SetIntPropertyValue(InValue, static_cast<int64>(ParameterValue.GetValue()));
-		return true;
+		Result = true;
 	}
-
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>(InParameters);
-	if (!OptionalValue.IsSet())
+	else
 	{
-		// TODO: Add Warning.
-		return false;
-	}
+		TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStrProperty>(InParameters);
+		if (!OptionalValue.IsSet())
+		{
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertySetter_NewValueNoFound",
+					"[{0}][{1}]Property:'{2}': can't find new value by source type:'{3}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(StaticEnum<EAruValueSource>()->GetValueAsString(ValueSource))
+			));
+			return false;
+		}
 
-	const void* PendingValue = OptionalValue.GetValue();
-	if (PendingValue == nullptr)
+		const void* PendingValue = OptionalValue.GetValue();
+		if (PendingValue == nullptr)
+		{
+			return false;
+		}
+
+		const FString* StringValue = static_cast<const FString*>(PendingValue);
+		if (StringValue == nullptr)
+		{
+			return false;
+		}
+
+		const int64 PendingEnumValue = EnumType->GetValueByNameString(*StringValue);
+		if (PendingEnumValue == INDEX_NONE)
+		{
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetEnumProperty_NoEnumFound",
+					"[{0}][{1}]Property:'{2}', can't find valid enum value by '{3}'."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(*StringValue)
+			));
+			return false;
+		}
+
+		UnderlyingProperty->SetIntPropertyValue(InValue, PendingEnumValue);
+		Result = true;
+	}
+	
+	if (Result == true)
 	{
-		// TODO: Add Warning.
-		return false;
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetEnumProperty_Success",
+					"[{0}][{1}]Property:'{2}' previous value:{3}, new value:{4}"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(InProperty->GetName()),
+				PreviousValue,
+				UnderlyingProperty->GetSignedIntPropertyValue(InValue)
+			));
 	}
-
-	const FString* StringValue = static_cast<const FString*>(PendingValue);
-	if (StringValue == nullptr)
+	else
 	{
-		// TODO: Add Warning.
-		return false;
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetProperty_Failed",
+					"[{0}][{1}]Property:'{2}' operation failure."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 	}
 
-	const int64 PendingEnumValue = EnumType->GetValueByNameString(*StringValue);
-	if (PendingEnumValue == INDEX_NONE)
-	{
-		// TODO: Add warning.
-		return false;
-	}
-
-	UnderlyingProperty->SetIntPropertyValue(InValue, PendingEnumValue);
-	return true;
+	return Result;
 }
 
 bool FAruPredicate_SetObjectValue::Execute(
@@ -970,8 +1235,10 @@ bool FAruPredicate_SetObjectValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"Object_PropertyTypeMismatch",
-					"Property:'{0}' is not a uobject property."),
+					"SetObjectProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not an uobject property."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
@@ -983,13 +1250,17 @@ bool FAruPredicate_SetObjectValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"ObjectClassMismatch",
-					"Property:'{0}' is not a uobject property."),
+					"SetObjectProperty_ObjectClassNULL",
+					"[{0}][{1}]Property:'{2}' is not a valid uobject property."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
 	}
 
+	bool Result = false;
+	const UObject* PreviousValue = ObjectProperty->GetObjectPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
@@ -1008,40 +1279,72 @@ bool FAruPredicate_SetObjectValue::Execute(
 				));
 			return false;
 		}
+		
 		const UObject* ObjectPtr = ParameterValue.GetValue();
 		if (ObjectPtr == nullptr)
 		{
 			ObjectProperty->SetObjectPropertyValue(InValue, nullptr);
-
-			// TODO: Add Warning.
-			return true;
 		}
-
-		const UClass* ObjectClass = ObjectPtr->GetClass();
-		if (!ensure(ObjectClass != nullptr))
+		else
 		{
-			// TODO: Add Warning.
-			return false;
-		}
+			const UClass* ObjectClass = ObjectPtr->GetClass();
+			if (!ensure(ObjectClass != nullptr))
+			{
+				return false;
+			}
 
-		if (!ObjectClass->IsChildOf(ClassType))
-		{
-			// TODO: Add Type mismatch log.
-			return false;
-		}
+			if (!ObjectClass->IsChildOf(ClassType))
+			{
+				FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetObjectProperty_ObjectClassMismatch",
+					"Property:'{0}' is not a valid uobject property."),
+				FText::FromString(InProperty->GetName())
+			));
+				return false;
+			}
 
-		ObjectProperty->SetObjectPropertyValue(InValue, ParameterValue.GetValue());
-		return true;
+			ObjectProperty->SetObjectPropertyValue(InValue, ParameterValue.GetValue());
+		}
+		
+		Result = true;
 	}
-
-	if (auto* PendingValue = GetNewValueBySourceType<FObjectPropertyBase>(InParameters, ClassType).GetPtrOrNull())
+	else if (auto* PendingValue = GetNewValueBySourceType<FObjectPropertyBase>(InParameters, ClassType).GetPtrOrNull())
 	{
 		ObjectProperty->CopyCompleteValue(InValue, *PendingValue);
-		return true;
+		Result = true;
 	}
 
-	// TODO: Add Warning.
-	return false;
+	if (Result == true)
+	{
+		const UObject* InNewValue = ObjectProperty->GetObjectPropertyValue(InValue);
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetUObjectProperty_Success",
+					"[{0}][{1}]Property:'{2}' previous value:{3}, new value:{4}"),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Success),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(!!PreviousValue? PreviousValue->GetName() : FString{"nullptr"}),
+				FText::FromString(!!InNewValue? InNewValue->GetName() : FString{"nullptr"})
+			));
+	}
+	else
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetProperty_Failed",
+					"[{0}][{1}]Property:'{2}' operation failure."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
+	}
+
+	return Result;
 }
 
 bool FAruPredicate_SetStructValue::Execute(
@@ -1081,17 +1384,42 @@ bool FAruPredicate_SetStructValue::Execute(
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"Struct_PropertyTypeMismatch",
-					"Property:'{0}' is not a struct property."),
+					"SetStructProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a struct property."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
 			));
 		return false;
 	}
 
 	const UScriptStruct* SourceStructType = StructProperty->Struct;
-	if (SourceStructType == nullptr || SourceStructType == FInstancedStruct::StaticStruct())
+	if (SourceStructType == nullptr)
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+					FText::Format(
+						LOCTEXT(
+							"SetStructProperty_TypeNull",
+							"[{0}][{1}]Property:'{2}' struct type is NULL."),
+								FText::FromString(GetCompactName()),
+								FText::FromString(Aru::ProcessResult::Failed),
+						FText::FromString(InProperty->GetName())
+					));
+		return false;
+	}
+	
+	if(SourceStructType == FInstancedStruct::StaticStruct())
+	{
+		
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+					FText::Format(
+						LOCTEXT(
+							"SetStructProperty_UnsupportedType",
+							"[{0}][{1}]Property:'{2}' struct type is instanced struct, use 'Set Instanced Struct' instead."),
+								FText::FromString(GetCompactName()),
+								FText::FromString(Aru::ProcessResult::Failed),
+						FText::FromString(InProperty->GetName())
+					));
 		return false;
 	}
 
@@ -1117,7 +1445,17 @@ bool FAruPredicate_SetStructValue::Execute(
 		FStructView& StructValue = ParameterValue.GetValue();
 		if (!StructValue.GetScriptStruct()->IsChildOf(SourceStructType))
 		{
-			// TODO: Add Type mismatch log.
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetStructProperty_StructTypeMismatch",
+					"[{0}][{1}]Property:'{2}'.Source type:{3}, target type:{4}."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(SourceStructType->GetName()),
+				FText::FromString(StructValue.GetScriptStruct()->GetName())
+			));
 			return false;
 		}
 
@@ -1128,32 +1466,64 @@ bool FAruPredicate_SetStructValue::Execute(
 	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters, SourceStructType);
 	if (!OptionalValue.IsSet())
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertySetter_NewValueNoFound",
+					"[{0}][{1}]Property:'{2}': can't find new value by source type:'{3}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(StaticEnum<EAruValueSource>()->GetValueAsString(ValueSource))
+			));
 		return false;
 	}
 
 	const void* PendingValue = OptionalValue.GetValue();
 	if (PendingValue == nullptr)
 	{
-		// TODO: Add Warning.
 		return false;
 	}
 
 	const FInstancedStruct* InstancedStructPtr = static_cast<const FInstancedStruct*>(PendingValue);
 	if (InstancedStructPtr == nullptr)
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"SetStructValue_InvalidValue",
+					"[{0}][{1}]Property:'{2}': invalid struct value."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Error)
+			));
 		return false;
 	}
 
 	const void* PendingStructValue = InstancedStructPtr->GetMemory();
 	if (PendingStructValue == nullptr)
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"SetStructValue_InvalidValue",
+					"[{0}][{1}]Property:'{2}': invalid struct value."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Error)
+			));
 		return false;
 	}
 
 	StructProperty->CopyCompleteValue(InValue, PendingStructValue);
+
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+			FText::Format(
+				LOCTEXT(
+					"SetStructValue_Result",
+					"[{0}][{1}]Property:'{2}': operation succeeded."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Success)
+			));
+	
 	return true;
 }
 
@@ -1191,21 +1561,45 @@ bool FAruPredicate_SetInstancedStructValue::Execute(
 	const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
 	if (StructProperty == nullptr)
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetInstancedStructProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a struct property."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	const UScriptStruct* StructType = StructProperty->Struct;
 	if (StructType == nullptr || StructType != FInstancedStruct::StaticStruct())
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+					FText::Format(
+						LOCTEXT(
+							"SetInstancedStructProperty_TypeNull",
+							"[{0}][{1}]Property:'{2}' struct type is NULL or not an instanced struct."),
+								FText::FromString(GetCompactName()),
+								FText::FromString(Aru::ProcessResult::Failed),
+						FText::FromString(InProperty->GetName())
+					));
 		return false;
 	}
 
 	FInstancedStruct* InstancedStructPtr = static_cast<FInstancedStruct*>(InValue);
 	if (InstancedStructPtr == nullptr)
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+					FText::Format(
+						LOCTEXT(
+							"SetInstancedStructProperty_TypeNull",
+							"[{0}][{1}]Property:'{2}' is an invalid instanced struct."),
+								FText::FromString(GetCompactName()),
+								FText::FromString(Aru::ProcessResult::Failed),
+						FText::FromString(InProperty->GetName())
+					));
 		return false;
 	}
 
@@ -1232,7 +1626,15 @@ bool FAruPredicate_SetInstancedStructValue::Execute(
 		FStructView& StructValue = ParameterValue.GetValue();
 		if (StructValue.GetScriptStruct() != FInstancedStruct::StaticStruct())
 		{
-			// TODO: Add Type mismatch log.
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+					FText::Format(
+						LOCTEXT(
+							"SetInstancedStructProperty_TypeNull",
+							"[{0}][{1}]Property:'{2}' struct type is not an instanced struct."),
+								FText::FromString(GetCompactName()),
+								FText::FromString(Aru::ProcessResult::Failed),
+						FText::FromString(InProperty->GetName())
+					));
 			return false;
 		}
 
@@ -1243,18 +1645,37 @@ bool FAruPredicate_SetInstancedStructValue::Execute(
 	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters, StructType);
 	if (!OptionalValue.IsSet())
 	{
-		// TODO: Add Warning.
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertySetter_NewValueNoFound",
+					"[{0}][{1}]Property:'{2}': can't find new value by source type:'{3}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(StaticEnum<EAruValueSource>()->GetValueAsString(ValueSource))
+			));
+		
 		return false;
 	}
 
 	const void* PendingValue = OptionalValue.GetValue();
 	if (PendingValue == nullptr)
 	{
-		// TODO: Add Warning.
 		return false;
 	}
 
 	StructProperty->CopyCompleteValue(InValue, PendingValue);
+	
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"SetInstancedStructValue_Result",
+				"[{0}][{1}]Property:'{2}': operation succeeded."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Success)
+		));
+	
 	return true;
 }
 

@@ -8,20 +8,59 @@ bool FAruPredicate_SetGameplayTag::Execute(
 	void* InValue,
 	const FInstancedPropertyBag& InParameters) const
 {
-	if (InProperty == nullptr || InValue == nullptr)
+	if (InProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"InPropertyNull",
+					"[{0}][{1}]In Property is NULL."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error)
+			));
+		return false;
+	}
+
+	if (InValue == nullptr)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"InValueNull",
+					"[{0}][{1}]In Value is NULL."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error)
+			));
 		return false;
 	}
 
 	const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
 	if (StructProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetInstancedStructProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a struct property."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	const UScriptStruct* SourceStructType = StructProperty->Struct;
 	if (SourceStructType == nullptr || SourceStructType != FGameplayTag::StaticStruct())
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetInstancedStructProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a gameplay tag."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -31,13 +70,40 @@ bool FAruPredicate_SetGameplayTag::Execute(
 		return false;
 	}
 
-	if (auto* PendingValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull())
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull();
+	if (!OptionalValue.IsSet())
 	{
-		StructProperty->CopyCompleteValue(InValue, *PendingValue);
-		return true;
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertySetter_NewValueNoFound",
+					"[{0}][{1}]Property:'{2}': can't find new value by source type:'{3}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(StaticEnum<EAruValueSource>()->GetValueAsString(ValueSource))
+			));
+		return false;
+	}
+	
+	const void* PendingValue = OptionalValue.GetValue();
+	if (PendingValue == nullptr)
+	{
+		return false;
 	}
 
-	return false;
+	StructProperty->CopyCompleteValue(InValue, PendingValue);
+	
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"SetGameplayTag_Result",
+				"[{0}][{1}]Property:'{2}': operation succeeded."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Success)
+		));
+	
+	return true;
 }
 
 bool FAruPredicate_SetGameplayTagContainer::Execute(
@@ -45,20 +111,59 @@ bool FAruPredicate_SetGameplayTagContainer::Execute(
 	void* InValue,
 	const FInstancedPropertyBag& InParameters) const
 {
-	if (InProperty == nullptr || InValue == nullptr)
+	if (InProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"InPropertyNull",
+					"[{0}][{1}]In Property is NULL."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error)
+			));
+		return false;
+	}
+
+	if (InValue == nullptr)
+	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Error(
+			FText::Format(
+				LOCTEXT(
+					"InValueNull",
+					"[{0}][{1}]In Value is NULL."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Error)
+			));
 		return false;
 	}
 
 	const FStructProperty* StructProperty = CastField<FStructProperty>(InProperty);
 	if (StructProperty == nullptr)
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetInstancedStructProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a struct property."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
 	const UScriptStruct* SourceStructType = StructProperty->Struct;
 	if (SourceStructType == nullptr || SourceStructType != FGameplayTagContainer::StaticStruct())
 	{
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"SetInstancedStructProperty_PropertyTypeMismatch",
+					"[{0}][{1}]Property:'{2}' is not a gameplay tag container."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName())
+			));
 		return false;
 	}
 
@@ -68,12 +173,39 @@ bool FAruPredicate_SetGameplayTagContainer::Execute(
 		return false;
 	}
 
-	if (auto* PendingValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull())
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull();
+	if (!OptionalValue.IsSet())
 	{
-		StructProperty->CopyCompleteValue(InValue, *PendingValue);
-		return true;
+		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"PropertySetter_NewValueNoFound",
+					"[{0}][{1}]Property:'{2}': can't find new value by source type:'{3}'."),
+						FText::FromString(GetCompactName()),
+						FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(StaticEnum<EAruValueSource>()->GetValueAsString(ValueSource))
+			));
+		return false;
 	}
+	
+	const void* PendingValue = OptionalValue.GetValue();
+	if (PendingValue == nullptr)
+	{
+		return false;
+	}
+	
+	StructProperty->CopyCompleteValue(InValue, PendingValue);
 
-	return false;
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
+		FText::Format(
+			LOCTEXT(
+				"SetGameplayTagContainer_Result",
+				"[{0}][{1}]Property:'{2}': operation succeeded."),
+					FText::FromString(GetCompactName()),
+					FText::FromString(Aru::ProcessResult::Success)
+		));
+	
+	return true;
 }
 #undef LOCTEXT_NAMESPACE
