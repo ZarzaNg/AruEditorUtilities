@@ -51,6 +51,34 @@ bool FAruFilter_ByNumericValue::IsConditionMet(const FProperty* InProperty, cons
 	return bInverseCondition;
 }
 
+bool FAruFilter_InRange::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
+{
+	if (InProperty == nullptr || InValue == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(InProperty);
+	if (NumericProperty == nullptr)
+	{
+		return bInverseCondition;
+	}
+
+	if (NumericProperty->IsFloatingPoint())
+	{
+		const float InFloatValue = NumericProperty->GetFloatingPointPropertyValue(InValue);
+		return FMath::IsWithin(InFloatValue, ConditionValue.X, ConditionValue.Y) ^ bInverseCondition;
+	}
+
+	if (NumericProperty->IsInteger())
+	{
+		const int InIntegerValue = NumericProperty->GetSignedIntPropertyValue(InValue);
+		return FMath::IsWithin(InIntegerValue, ConditionValue.X, ConditionValue.Y) ^ bInverseCondition;
+	}
+
+	return bInverseCondition;
+}
+
 bool FAruFilter_ByBoolean::IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const
 {
 	if (InProperty == nullptr || InValue == nullptr)

@@ -21,6 +21,21 @@ protected:
 	EAruNumericCompareOp CompareOp = EAruNumericCompareOp::Equip;
 };
 
+USTRUCT(BlueprintType, DisplayName="Check Numeric Range")
+struct FAruFilter_InRange : public FAruFilter
+{
+	GENERATED_BODY()
+
+public:
+	virtual ~FAruFilter_InRange() override {};
+
+	virtual bool IsConditionMet(const FProperty* InProperty, const void* InValue, const FInstancedPropertyBag& InParameters) const override;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, SimpleDisplay)
+	FVector2D ConditionValue{0.f};
+};
+
 USTRUCT(BlueprintType, DisplayName="Check Boolean Value")
 struct FAruFilter_ByBoolean : public FAruFilter
 {
