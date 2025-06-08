@@ -12,6 +12,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	FGameplayTag NewValue;
 
+	virtual FString GetCompactName() const override { return {"SetGameplayTagValue"}; }
+
 public:
 	virtual ~FAruPredicate_SetGameplayTag() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override { return StaticStruct(); }
@@ -31,6 +33,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="ValueSource==EAruValueSource::Value", EditConditionHides))
 	FGameplayTagContainer NewValue;
 
+	virtual FString GetCompactName() const override { return {"SetGameplayTagContainerValue"}; }
+	
 public:
 	virtual ~FAruPredicate_SetGameplayTagContainer() override {}
 	virtual const UScriptStruct* GetScriptedStruct() const override { return StaticStruct(); }

@@ -56,7 +56,7 @@ bool FAruPredicate_SetGameplayTag::Execute(
 			FText::Format(
 				LOCTEXT(
 					"SetInstancedStructProperty_PropertyTypeMismatch",
-					"[{0}][{1}]Property:'{2}' is not a gameplay tag."),
+					"[{0}][{1}]Property:'{2}' is not a gameplay tag property."),
 						FText::FromString(GetCompactName()),
 						FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
@@ -70,7 +70,7 @@ bool FAruPredicate_SetGameplayTag::Execute(
 		return false;
 	}
 
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull();
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters, FGameplayTag::StaticStruct());
 	if (!OptionalValue.IsSet())
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
@@ -159,7 +159,7 @@ bool FAruPredicate_SetGameplayTagContainer::Execute(
 			FText::Format(
 				LOCTEXT(
 					"SetInstancedStructProperty_PropertyTypeMismatch",
-					"[{0}][{1}]Property:'{2}' is not a gameplay tag container."),
+					"[{0}][{1}]Property:'{2}' is not a gameplay tag container property."),
 						FText::FromString(GetCompactName()),
 						FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName())
@@ -173,7 +173,7 @@ bool FAruPredicate_SetGameplayTagContainer::Execute(
 		return false;
 	}
 
-	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters).GetPtrOrNull();
+	TOptional<const void*> OptionalValue = GetNewValueBySourceType<FStructProperty>(InParameters, FGameplayTagContainer::StaticStruct());
 	if (!OptionalValue.IsSet())
 	{
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
