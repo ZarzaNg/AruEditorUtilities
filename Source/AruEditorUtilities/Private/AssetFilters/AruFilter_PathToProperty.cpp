@@ -25,11 +25,13 @@ bool FAruFilter_PathToProperty::IsConditionMet(const FProperty* InProperty, cons
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
 				LOCTEXT(
-					"No property found.",
-					"Failed to find property by path:'{0}'."),
-					FText::FromString(ResolvedPath)
-				)
-			);
+					"NoPropertyFound",
+					"[{0}][{1}]Failed to find property by path:'{2}'."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(ResolvedPath)
+			));
+		
 		return bInverseCondition;
 	}
 

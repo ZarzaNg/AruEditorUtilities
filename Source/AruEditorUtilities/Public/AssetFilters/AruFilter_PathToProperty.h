@@ -18,4 +18,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, meta=(ExcludeBaseStruct))
 	TInstancedStruct<FAruFilter> Filter;
+	
+private:
+	static FString GetCompactName() { return {"FindPropertyByPath"}; }
 };
