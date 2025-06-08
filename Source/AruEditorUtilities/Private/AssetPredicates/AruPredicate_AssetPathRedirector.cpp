@@ -88,7 +88,7 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 	const FSoftObjectPath TargetAssetPath{NewPath};
 	if (UObject* LoadedAsset = TargetAssetPath.TryLoad())
 	{
-		if(!LoadedAsset->IsA(ObjectPtr))
+		if(!LoadedAsset->IsA(ObjectPtr->GetClass()))
 		{
 			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
 			FText::Format(
