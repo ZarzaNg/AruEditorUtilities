@@ -94,7 +94,7 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 			FText::Format(
 				LOCTEXT(
 					"ClassTypeMismatch",
-					"[{0}][{1}]Property:'{1}' object class:{2}, new object class:{3}."),
+					"[{0}][{1}]Property:'{2}' object class:{3}, new object class:{4}."),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Failed),
 				FText::FromString(InProperty->GetName()),
@@ -110,7 +110,7 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 			FText::Format(
 				LOCTEXT(
 					"OperationSucceed",
-					"[{0}][{1}]Previous asset:'{2}', New asset:'{3}' form '{4}'"),
+					"[{0}][{1}]Previous asset:'{2}', New asset:'{3}' from '{4}'"),
 				FText::FromString(GetCompactName()),
 				FText::FromString(Aru::ProcessResult::Success),
 				FText::FromString(ObjectPtr->GetName()),
@@ -120,6 +120,17 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 		);
 		return true;
 	}
+
+	FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+		FText::Format(
+			LOCTEXT(
+				"ObjectNotFound",
+				"[{0}][{1}]Property:'{2}'. Object not found by path:'{3}'."),
+			FText::FromString(GetCompactName()),
+			FText::FromString(Aru::ProcessResult::Failed),
+			FText::FromString(InProperty->GetName()),
+			FText::FromString(NewPath)
+		));
 
 	return false;
 }
