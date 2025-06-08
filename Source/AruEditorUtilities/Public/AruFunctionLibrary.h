@@ -46,7 +46,10 @@ public:
 	static void ProcessSelectedAssets(const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs);
 
 	UFUNCTION(BlueprintCallable, CallInEditor)
-	static void ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs);
+	static bool ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs);
+
+	UFUNCTION(BlueprintCallable, CallInEditor)
+	static bool ProcessAsset(UObject* const Object, const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs);
 
 	static FAruPropertyContext FindPropertyByPath(
 		const FProperty* InProperty,

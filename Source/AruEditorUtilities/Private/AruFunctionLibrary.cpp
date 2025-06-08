@@ -13,44 +13,54 @@ void UAruFunctionLibrary::ProcessSelectedAssets(const TArray<FAruActionDefinitio
 	ProcessAssets(SelectedObjects, Actions, Configs);
 }
 
-void UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs)
+bool UAruFunctionLibrary::ProcessAssets(const TArray<UObject*>& Objects, const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs)
 {
 	FScopedSlowTask Progress(Objects.Num(), LOCTEXT("Processing...", "Processing..."));
 	Progress.MakeDialog();
+
+	bool Result = false;
 	for (auto& Object : Objects)
 	{
 		Progress.EnterProgressFrame(1.f);
-
-		UObject* ObjectToProcess = Object;
-		UClass* ClassToProcess = Object->GetClass();
-		if (UBlueprint* BlueprintAsset = Cast<UBlueprint>(Object))
-		{
-			ClassToProcess = BlueprintAsset->GeneratedClass;
-			ObjectToProcess = ClassToProcess->GetDefaultObject();
-		}
-
-		bool bExecutedSuccessfully = false;
-		for (TFieldIterator<FProperty> It{ClassToProcess}; It; ++It)
-		{
-			FProperty* Property = *It;
-			if (Property == nullptr)
-			{
-				continue;
-			}
-			void* ValuePtr = Property->ContainerPtrToValuePtr<void>(ObjectToProcess);
-			if (ValuePtr == nullptr)
-			{
-				continue;
-			}
-
-			bExecutedSuccessfully |= ProcessContainerValues(Property, ValuePtr, {Actions, Configs.Parameters, Configs.MaxSearchDepth});
-		}
-
-		if (bExecutedSuccessfully)
-		{
-			Object->Modify();
-		}
+		Result |= ProcessAsset(Object, Actions, Configs);
 	}
+
+	return Result;
+}
+
+bool UAruFunctionLibrary::ProcessAsset(UObject* const Object, const TArray<FAruActionDefinition>& Actions, const FAruProcessConfig& Configs)
+{
+	UObject* ObjectToProcess = Object;
+	UClass* ClassToProcess = Object->GetClass();
+	if (UBlueprint* BlueprintAsset = Cast<UBlueprint>(Object))
+	{
+		ClassToProcess = BlueprintAsset->GeneratedClass;
+		ObjectToProcess = ClassToProcess->GetDefaultObject();
+	}
+
+	bool bExecutedSuccessfully = false;
+	for (TFieldIterator<FProperty> It{ClassToProcess}; It; ++It)
+	{
+		FProperty* Property = *It;
+		if (Property == nullptr)
+		{
+			continue;
+		}
+		void* ValuePtr = Property->ContainerPtrToValuePtr<void>(ObjectToProcess);
+		if (ValuePtr == nullptr)
+		{
+			continue;
+		}
+
+		bExecutedSuccessfully |= ProcessContainerValues(Property, ValuePtr, {Actions, Configs.Parameters, Configs.MaxSearchDepth});
+	}
+
+	if (bExecutedSuccessfully)
+	{
+		Object->Modify();
+	}
+
+	return bExecutedSuccessfully;
 }
 
 bool UAruFunctionLibrary::ProcessContainerValues(
