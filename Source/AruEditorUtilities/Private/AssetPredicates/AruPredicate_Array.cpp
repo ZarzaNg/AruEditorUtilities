@@ -51,6 +51,7 @@ bool FAruPredicate_AddArrayValue::Execute(
 			));
 		return false;
 	}
+	ElementProperty->InitializeValue(PendingElementPtr);
 	
 	ON_SCOPE_EXIT
 	{

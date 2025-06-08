@@ -68,6 +68,7 @@ bool FAruPredicate_AddSetElement::Execute(
 		
 		return false;
 	}
+	ElementProperty->InitializeValue(PendingElementPtr);
 
 	ON_SCOPE_EXIT
 	{
@@ -297,6 +298,7 @@ bool FAruPredicate_ModifySetValue::Execute(
 			
 			return false;
 		}
+		ElementProperty->InitializeValue(PendingElementPtr);
 
 		ON_SCOPE_EXIT
 		{

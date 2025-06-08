@@ -67,6 +67,7 @@ bool FAruPredicate_AddMapPair::Execute(
 			));
 		return false;
 	}
+	KeyProperty->InitializeValue(PendingKeyPtr);
 
 	ON_SCOPE_EXIT
 	{
@@ -437,6 +438,7 @@ bool FAruPredicate_ModifyMapPair::Execute(
 			
 			return false;
 		}
+		KeyProperty->InitializeValue(PendingKeyPtr);
 
 		ON_SCOPE_EXIT
 		{
