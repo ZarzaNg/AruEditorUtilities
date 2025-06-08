@@ -88,8 +88,24 @@ bool FAruPredicate_AssetPathRedirector::Execute(
 	const FSoftObjectPath TargetAssetPath{NewPath};
 	if (UObject* LoadedAsset = TargetAssetPath.TryLoad())
 	{
-		ObjectProperty->SetObjectPropertyValue(InValue, LoadedAsset);
+		if(!LoadedAsset->IsA(ObjectPtr))
+		{
+			FMessageLog{FName{"AruEditorUtilitiesModule"}}.Warning(
+			FText::Format(
+				LOCTEXT(
+					"ClassTypeMismatch",
+					"[{0}][{1}]Property:'{1}' object class:{2}, new object class:{3}."),
+				FText::FromString(GetCompactName()),
+				FText::FromString(Aru::ProcessResult::Failed),
+				FText::FromString(InProperty->GetName()),
+				FText::FromString(ObjectPtr->GetClass()?ObjectPtr->GetClass()->GetName():FString{"NULL"}),
+				FText::FromString(LoadedAsset->GetClass()?LoadedAsset->GetClass()->GetName():FString{"NULL"})
+			));
 
+			return false;
+		}
+		
+		ObjectProperty->SetObjectPropertyValue(InValue, LoadedAsset);
 		FMessageLog{FName{"AruEditorUtilitiesModule"}}.Info(
 			FText::Format(
 				LOCTEXT(
