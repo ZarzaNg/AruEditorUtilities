@@ -630,7 +630,7 @@ bool FAruPredicate_SetIntegerValue::Execute(
 	}
 
 	bool Result = false;
-	const float PreviousValue = NumericProperty->GetFloatingPointPropertyValue(InValue);
+	const float PreviousValue = NumericProperty->GetSignedIntPropertyValue(InValue);
 	if (ValueSource == EAruValueSource::Parameters)
 	{
 		const FString&& ResolvedParameterName = UAruFunctionLibrary::ResolveParameterizedString(InParameters, ParameterName);
@@ -668,7 +668,7 @@ bool FAruPredicate_SetIntegerValue::Execute(
 				FText::FromString(Aru::ProcessResult::Success),
 				FText::FromString(InProperty->GetName()),
 				PreviousValue,
-				NumericProperty->GetFloatingPointPropertyValue(InValue)
+				NumericProperty->GetSignedIntPropertyValue(InValue)
 			));
 	}
 	else
@@ -1673,7 +1673,8 @@ bool FAruPredicate_SetInstancedStructValue::Execute(
 				"SetInstancedStructValue_Result",
 				"[{0}][{1}]Property:'{2}': operation succeeded."),
 					FText::FromString(GetCompactName()),
-					FText::FromString(Aru::ProcessResult::Success)
+					FText::FromString(Aru::ProcessResult::Success),
+						FText::FromString(InProperty->GetName())
 		));
 	
 	return true;
