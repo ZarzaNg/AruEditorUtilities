@@ -9,7 +9,7 @@ struct FAruPredicate_LoadAssetByPath : public FAruPredicate
 
 protected:
 	/*
-	 * The correct path configuration would be '/Game/Textures/MyTexture'.
+	 * The correct path configuration would be '/Game/Textures/MyTexture.MyTexture'.
 	 * Alternatively, you can access the path to the resource by selecting 'Copy Object Path' in the editor.
 	 */
 	UPROPERTY(EditDefaultsOnly)
